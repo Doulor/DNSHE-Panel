@@ -1,6 +1,6 @@
-# DNS 多账号管理面板
+# DNS 动态多账号管理面板
 
-这是一个基于 Cloudflare Pages 和 DNSHE API 的多账号DNS管理面板，支持多账号、多子域、多DNS记录管理。
+这是一个基于 Cloudflare Pages 和 DNSHE API 的动态多账号DNS管理面板，支持无限账号、多子域、多DNS记录管理。
 
 ## 项目结构
 
@@ -21,7 +21,7 @@ dns-panel/
 
 ## 功能特性
 
-- ✅ 多账号支持（最多2个账号）
+- ✅ 动态多账号支持（无限账号）
 - ✅ 子域名管理（注册/删除/续期）
 - ✅ DNS记录管理（增删改查）
 - ✅ 美观的前端界面
@@ -46,6 +46,9 @@ wrangler pages secret put DNSHE_KEY_1
 wrangler pages secret put DNSHE_SECRET_1
 wrangler pages secret put DNSHE_KEY_2
 wrangler pages secret put DNSHE_SECRET_2
+wrangler pages secret put DNSHE_KEY_3
+wrangler pages secret put DNSHE_SECRET_3
+# 可以继续添加更多账号，如 DNSHE_KEY_4/DNSHE_SECRET_4 等
 ```
 
 这一步决定了你是不是在裸奔，别跳过。
@@ -73,6 +76,11 @@ wrangler pages deploy
 
 ## 使用功能
 
-- 刷新子域列表
+- 刷新所有账号的子域列表
 - 注册/删除/续期子域
 - 管理DNS记录（新增/编辑/删除）
+- 动态账号支持（新增账号只需在环境变量中添加即可）
+
+## 扩展账号
+
+新增账号只需在 Cloudflare Pages → Environment Variables 添加新的 DNSHE_KEY_N / DNSHE_SECRET_N，无需修改任何代码。

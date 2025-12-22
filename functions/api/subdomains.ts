@@ -1,16 +1,8 @@
 import { DNSHESubdomainAPI } from '../lib/dnshe_api.ts';
 
 export interface Env {
-  DNSHE_KEY_1: string;
-  DNSHE_SECRET_1: string;
-  DNSHE_KEY_2: string;
-  DNSHE_SECRET_2: string;
+  [key: string]: string; // 动态环境变量
 }
-
-const accounts = {
-  "account1": { key: "DNSHE_KEY_1", secret: "DNSHE_SECRET_1", name: "账号1" },
-  "account2": { key: "DNSHE_KEY_2", secret: "DNSHE_SECRET_2", name: "账号2" },
-};
 
 export async function onRequest(context: { request: Request, env: Env }) {
   const { request, env } = context;
@@ -18,16 +10,30 @@ export async function onRequest(context: { request: Request, env: Env }) {
   const method = request.method;
 
   if (method === "GET") {
+    const accounts: { key: string; secret: string; name: string }[] = [];
+
+    // 动态扫描所有 DNSHE_KEY_* / DNSHE_SECRET_* 配对
+    Object.keys(env).forEach(k => {
+      if (k.startsWith('DNSHE_KEY_')) {
+        const idx = k.replace('DNSHE_KEY_', '');
+        const secretName = `DNSHE_SECRET_${idx}`;
+        if (env[secretName]) {
+          accounts.push({
+            key: env[k],
+            secret: env[secretName],
+            name: `账号${idx}`
+          });
+        }
+      }
+    });
+
     const results: any[] = [];
 
-    for (const accountId in accounts) {
-      const acc = accounts[accountId];
-      const key = env[acc.key as keyof Env];
-      const secret = env[acc.secret as keyof Env];
+    for (const acc of accounts) {
       const api = new DNSHESubdomainAPI(
         'https://api005.dnshe.com/index.php',
-        key,
-        secret
+        acc.key,
+        acc.secret
       );
 
       try {
@@ -35,13 +41,12 @@ export async function onRequest(context: { request: Request, env: Env }) {
         if (data.success) {
           const subdomainsWithAccount = data.subdomains.map((sd: any) => ({
             ...sd,
-            account: acc.name,
-            accountId: accountId
+            account: acc.name
           }));
           results.push(...subdomainsWithAccount);
         }
       } catch (err) {
-        console.error(`Error for ${accountId}:`, err);
+        console.error(`Error for ${acc.name}:`, err);
       }
     }
 
@@ -54,17 +59,17 @@ export async function onRequest(context: { request: Request, env: Env }) {
     const body = await request.json();
 
     // Determine which account to use
-    const accountKey = body.account || 'account1';
-    const acc = accounts[accountKey];
-    if (!acc) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid account" }), {
+    const accountIndex = body.accountIndex || '1';
+    const key = env[`DNSHE_KEY_${accountIndex}`];
+    const secret = env[`DNSHE_SECRET_${accountIndex}`];
+
+    if (!key || !secret) {
+      return new Response(JSON.stringify({ success: false, error: "账号不存在或未配置" }), {
         headers: { 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    const key = env[acc.key as keyof Env];
-    const secret = env[acc.secret as keyof Env];
     const api = new DNSHESubdomainAPI(
       'https://api005.dnshe.com/index.php',
       key,
@@ -88,17 +93,17 @@ export async function onRequest(context: { request: Request, env: Env }) {
     const body = await request.json();
 
     // Determine which account to use
-    const accountKey = body.account || 'account1';
-    const acc = accounts[accountKey];
-    if (!acc) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid account" }), {
+    const accountIndex = body.accountIndex || '1';
+    const key = env[`DNSHE_KEY_${accountIndex}`];
+    const secret = env[`DNSHE_SECRET_${accountIndex}`];
+
+    if (!key || !secret) {
+      return new Response(JSON.stringify({ success: false, error: "账号不存在或未配置" }), {
         headers: { 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    const key = env[acc.key as keyof Env];
-    const secret = env[acc.secret as keyof Env];
     const api = new DNSHESubdomainAPI(
       'https://api005.dnshe.com/index.php',
       key,
@@ -122,17 +127,17 @@ export async function onRequest(context: { request: Request, env: Env }) {
     const body = await request.json();
 
     // Determine which account to use
-    const accountKey = body.account || 'account1';
-    const acc = accounts[accountKey];
-    if (!acc) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid account" }), {
+    const accountIndex = body.accountIndex || '1';
+    const key = env[`DNSHE_KEY_${accountIndex}`];
+    const secret = env[`DNSHE_SECRET_${accountIndex}`];
+
+    if (!key || !secret) {
+      return new Response(JSON.stringify({ success: false, error: "账号不存在或未配置" }), {
         headers: { 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    const key = env[acc.key as keyof Env];
-    const secret = env[acc.secret as keyof Env];
     const api = new DNSHESubdomainAPI(
       'https://api005.dnshe.com/index.php',
       key,

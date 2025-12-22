@@ -43,19 +43,19 @@ export class DNSHESubdomainAPI {
     return this.request('subdomains', 'renew', 'POST', { subdomain_id });
   }
 
-  listDNSRecords(subdomain_id: number) {
+  listDnsRecords(subdomain_id: number) {
     return this.request('dns_records', 'list', 'GET', { subdomain_id });
   }
 
-  createDNSRecord(subdomain_id: number, type: string, content: string, name?: string, ttl?: number, priority?: number) {
+  createDnsRecord(subdomain_id: number, type: string, content: string, name?: string, ttl?: number, priority?: number) {
     return this.request('dns_records', 'create', 'POST', { subdomain_id, type, content, name, ttl, priority });
   }
 
-  updateDNSRecord(record_id: number, content?: string, ttl?: number, priority?: number) {
+  updateDnsRecord(record_id: number, content?: string, ttl?: number, priority?: number) {
     return this.request('dns_records', 'update', 'POST', { record_id, content, ttl, priority });
   }
 
-  deleteDNSRecord(record_id: number) {
+  deleteDnsRecord(record_id: number) {
     return this.request('dns_records', 'delete', 'POST', { record_id });
   }
 }

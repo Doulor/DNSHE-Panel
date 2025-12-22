@@ -29,10 +29,7 @@
 <div id="modal" class="modal">
   <div class="modal-content">
     <h3>注册新子域</h3>
-    <select id="accountSelect">
-      <option value="account1">账号1</option>
-      <option value="account2">账号2</option>
-    </select>
+    <select id="accountSelect"></select>
     <input id="subdomainInput" placeholder="子域前缀">
     <input id="rootdomainInput" placeholder="根域 (example.com)">
     <button id="submitRegister">注册</button>
@@ -100,15 +97,63 @@ const addDNSRecordBtn = document.getElementById('addDNSRecordBtn');
 const addDNSModal = document.getElementById('addDNSModal');
 const closeAddDNSModal = document.getElementById('closeAddDNSModal');
 const submitDNSRecord = document.getElementById('submitDNSRecord');
+const accountSelect = document.getElementById('accountSelect');
 
 let currentSubdomainId = null;
+let currentAccountIndex = null;
 
 refreshBtn.addEventListener('click', loadSubdomains);
-registerBtn.addEventListener('click', () => modal.style.display = 'flex');
+registerBtn.addEventListener('click', () => {
+  loadAccountOptions();
+  modal.style.display = 'flex';
+});
 closeModal.addEventListener('click', () => modal.style.display = 'none');
 closeDNSModal.addEventListener('click', () => dnsModal.style.display = 'none');
 addDNSRecordBtn.addEventListener('click', () => addDNSModal.style.display = 'flex');
 closeAddDNSModal.addEventListener('click', () => addDNSModal.style.display = 'none');
+
+// 动态加载账号选项
+async function loadAccountOptions() {
+  try {
+    const res = await fetch('/api/subdomains');
+    const data = await res.json();
+
+    // 清空现有选项
+    accountSelect.innerHTML = '';
+
+    // 获取所有唯一账号
+    const accounts = [...new Set(data.subdomains.map(sd => sd.account))];
+
+    accounts.forEach(account => {
+      const option = document.createElement('option');
+      // 从账号名中提取数字，如"账号1"提取为"1"
+      const accountIndex = account.replace('账号', '');
+      option.value = accountIndex;
+      option.textContent = account;
+      accountSelect.appendChild(option);
+    });
+
+    // 如果没有账号，则默认添加账号1-3的选项
+    if (accounts.length === 0) {
+      for (let i = 1; i <= 3; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `账号${i}`;
+        accountSelect.appendChild(option);
+      }
+    }
+  } catch (err) {
+    console.error('加载账号选项失败:', err);
+    // 如果加载失败，提供默认选项
+    accountSelect.innerHTML = '';
+    for (let i = 1; i <= 3; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `账号${i}`;
+      accountSelect.appendChild(option);
+    }
+  }
+}
 
 async function loadSubdomains() {
   tableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
@@ -127,8 +172,8 @@ async function loadSubdomains() {
           <td>${sd.created_at}</td>
           <td>
             <button onclick="manageDNSRecords(${sd.id}, '${sd.account}')">管理DNS</button>
-            <button onclick="deleteSubdomain(${sd.id}, '${sd.account}')">删除</button>
-            <button onclick="renewSubdomain(${sd.id}, '${sd.account}')">续期</button>
+            <button onclick="deleteSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">删除</button>
+            <button onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">续期</button>
           </td>
         `;
         tableBody.appendChild(tr);
@@ -144,7 +189,7 @@ async function loadSubdomains() {
 
 // 注册子域
 submitRegister.addEventListener('click', async () => {
-  const account = document.getElementById('accountSelect').value;
+  const accountIndex = document.getElementById('accountSelect').value;
   const subdomain = document.getElementById('subdomainInput').value;
   const rootdomain = document.getElementById('rootdomainInput').value;
   if (!subdomain || !rootdomain) return alert('请填写完整信息');
@@ -152,7 +197,7 @@ submitRegister.addEventListener('click', async () => {
   const res = await fetch(`/api/subdomains`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ account, subdomain, rootdomain })
+    body: JSON.stringify({ accountIndex, subdomain, rootdomain })
   });
   const data = await res.json();
   alert(data.success ? '注册成功' : '注册失败');
@@ -163,12 +208,12 @@ submitRegister.addEventListener('click', async () => {
 });
 
 // 删除子域
-async function deleteSubdomain(id, account) {
+async function deleteSubdomain(id, accountIndex) {
   if (!confirm('确定删除吗？')) return;
   const res = await fetch(`/api/subdomains`, {
     method: 'DELETE',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ subdomain_id: id, account })
+    body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
   alert(data.success ? '删除成功' : '删除失败');
@@ -176,11 +221,11 @@ async function deleteSubdomain(id, account) {
 }
 
 // 续期子域
-async function renewSubdomain(id, account) {
+async function renewSubdomain(id, accountIndex) {
   const res = await fetch(`/api/subdomains/renew`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ subdomain_id: id, account })
+    body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
   alert(data.success ? '续期成功' : '续期失败');
@@ -190,13 +235,18 @@ async function renewSubdomain(id, account) {
 // 管理DNS记录
 async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
-  document.getElementById('dnsModalTitle').textContent = `DNS记录管理 - 子域ID: ${subdomainId}`;
+  currentAccountIndex = account.replace('账号', '');
+  document.getElementById('dnsModalTitle').textContent = `DNS记录管理 - 子域ID: ${subdomainId} (${account})`;
 
   const dnsTableBody = document.querySelector('#dnsTable tbody');
   dnsTableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
 
   try {
-    const res = await fetch(`/api/dns?subdomain_id=${subdomainId}&account=${account.replace('账号', 'account')}`);
+    const res = await fetch(`/api/dns/list`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
+    });
     const data = await res.json();
 
     dnsTableBody.innerHTML = '';
@@ -241,7 +291,9 @@ submitDNSRecord.addEventListener('click', async () => {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
-      subdomain_id: currentSubdomainId,
+      action: 'create',
+      accountIndex: currentAccountIndex,
+      subdomainId: currentSubdomainId,
       type,
       content,
       name,
@@ -259,8 +311,7 @@ submitDNSRecord.addEventListener('click', async () => {
     document.getElementById('dnsPriorityInput').value = '0';
     addDNSModal.style.display = 'none';
     // Refresh the DNS records list
-    const account = document.querySelector(`#subdomainTable tbody tr td:nth-child(4)`).textContent;
-    manageDNSRecords(currentSubdomainId, account);
+    manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
   }
 });
 
@@ -276,15 +327,18 @@ async function deleteDNSRecord(recordId) {
   const res = await fetch(`/api/dns/delete`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ record_id: recordId })
+    body: JSON.stringify({
+      action: 'delete',
+      accountIndex: currentAccountIndex,
+      record_id: recordId
+    })
   });
   const data = await res.json();
   alert(data.success ? '删除成功' : '删除失败');
 
   if (data.success) {
     // Refresh the DNS records list
-    const account = document.querySelector(`#subdomainTable tbody tr td:nth-child(4)`).textContent;
-    manageDNSRecords(currentSubdomainId, account);
+    manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
   }
 }
 

@@ -99,7 +99,6 @@
 <!-- 添加DNS记录弹窗 -->
 <div id="addDNSModal" class="modal">
   <div class="modal-content">
-    <button id="modalCloseBtn3" class="modal-close-btn">×</button>
     <div class="modal-header">
       <h3>➕ 添加DNS记录</h3>
     </div>
@@ -249,7 +248,6 @@ const accountSelect = document.getElementById('accountSelect');
 // 模态框关闭按钮
 const modalCloseBtn1 = document.getElementById('modalCloseBtn1');
 const modalCloseBtn2 = document.getElementById('modalCloseBtn2');
-const modalCloseBtn3 = document.getElementById('modalCloseBtn3');
 const modalCloseBtn4 = document.getElementById('modalCloseBtn4');
 
 // 编辑DNS记录相关元素
@@ -430,9 +428,6 @@ modalCloseBtn1.addEventListener('click', () => {
   modal.style.display = 'none';
 });
 
-modalCloseBtn3.addEventListener('click', () => {
-  addDNSModal.style.display = 'none';
-});
 
 
 // 编辑DNS记录相关事件监听器

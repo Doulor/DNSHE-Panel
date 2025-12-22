@@ -466,7 +466,7 @@ tr:hover {
   color: white;
   width: 32px;
   height: 32px;
-  border-radius: 4px; /* 方形按钮 */
+  border-radius: 50%; /* 圆形按钮 */
   padding: 0;
   font-size: 16px;
 }

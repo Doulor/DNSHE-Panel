@@ -473,8 +473,8 @@ async function manageDNSRecords(subdomainId, account) {
           <td>${record.priority || ''}</td>
           <td>${record.created_at}</td>
           <td>
-            <button onclick="editDNSRecord(${record.id})">编辑</button>
-            <button onclick="deleteDNSRecord(${record.id})">删除</button>
+            <button class="btn btn-warning" onclick="editDNSRecord(${record.id})">✏️ 编辑</button>
+            <button class="btn btn-danger" onclick="deleteDNSRecord(${record.id})">🗑️ 删除</button>
           </td>
         `;
         dnsTableBody.appendChild(tr);
@@ -720,8 +720,8 @@ async function manageDNSRecords(subdomainId, account) {
           <td>${record.priority || ''}</td>
           <td>${record.created_at}</td>
           <td>
-            <button onclick="editDNSRecord(${record.id})">✏️ 编辑</button>
-            <button onclick="deleteDNSRecord(${record.id})">🗑️ 删除</button>
+            <button class="btn btn-warning" onclick="editDNSRecord(${record.id})">✏️ 编辑</button>
+            <button class="btn btn-danger" onclick="deleteDNSRecord(${record.id})">🗑️ 删除</button>
           </td>
         `;
         dnsTableBody.appendChild(tr);

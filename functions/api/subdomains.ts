@@ -4,6 +4,19 @@ export interface Env {
   [key: string]: string; // 动态环境变量
 }
 
+// 根据环境变量获取账号别名
+function getAccountAlias(accountIndex: string, env: Env): string {
+  const aliasKey = `DNSHE_ALIAS_${accountIndex}`;
+  const alias = env[aliasKey];
+
+  if (alias && alias.trim() !== '') {
+    return alias.trim();
+  }
+
+  // 如果没有设置别名，则返回默认的"账号X"格式
+  return `账号${accountIndex}`;
+}
+
 export async function onRequest(context: { request: Request, env: Env }) {
   const { request, env } = context;
   const url = new URL(request.url);

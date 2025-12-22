@@ -289,6 +289,13 @@ td > .btn + .btn {
   height: auto; /* 确保高度自适应内容 */
 }
 
+/* 增加DNS记录表格中操作列的宽度 */
+#dnsTable td:nth-child(7),
+#dnsTable th:nth-child(7) {
+  width: 150px; /* 设置操作列的固定宽度 */
+  min-width: 150px;
+}
+
 .modal-buttons {
   margin-top: 20px;
   display: flex;

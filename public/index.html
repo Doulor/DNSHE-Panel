@@ -10,14 +10,17 @@
   <!-- 登录模态框 -->
   <div id="loginModal" class="modal login-modal">
     <div class="modal-content login-content">
-      <h3>🔐 DNS管理面板登录</h3>
-      <input type="password" id="loginPassword" class="login-input" placeholder="请输入访问密码">
-      <div style="display: flex; align-items: center; margin-bottom: 15px;">
-        <input type="checkbox" id="rememberPassword" style="margin-right: 8px;">
-        <label for="rememberPassword" style="margin: 0; font-size: 14px; color: #666;">记住密码</label>
+      <button id="loginCloseBtn" class="close-btn">×</button>
+      <div class="modal-header">
+        <h3>🔐 DNS管理面板登录</h3>
       </div>
-      <button id="loginBtn" class="login-btn">登录</button>
-      <div id="loginFeedback" style="margin-top: 10px; text-align: center; min-height: 20px; color: #e74c3c; font-size: 14px;"></div>
+      <input type="password" id="loginPassword" class="login-input" placeholder="请输入访问密码">
+      <div class="remember-container">
+        <input type="checkbox" id="rememberPassword">
+        <label for="rememberPassword">记住密码</label>
+      </div>
+      <button id="loginBtn" class="login-btn">🔐 登录</button>
+      <div id="loginFeedback" class="login-feedback"></div>
     </div>
   </div>
 
@@ -50,7 +53,10 @@
 <!-- 注册子域弹窗 -->
 <div id="modal" class="modal">
   <div class="modal-content">
-    <h3>注册新子域</h3>
+    <button id="modalCloseBtn1" class="modal-close-btn">×</button>
+    <div class="modal-header">
+      <h3>➕ 注册新子域</h3>
+    </div>
     <label>选择账号:</label>
     <select id="accountSelect"></select>
     <label>子域前缀:</label>
@@ -58,8 +64,8 @@
     <label>根域名:</label>
     <input id="rootdomainInput" placeholder="例如: example.com">
     <div class="modal-buttons">
-      <button id="submitRegister">注册</button>
-      <button id="closeModal">取消</button>
+      <button id="submitRegister" class="btn btn-success">✅ 注册</button>
+      <button id="closeModal" class="btn btn-danger">❌ 取消</button>
     </div>
   </div>
 </div>
@@ -67,21 +73,24 @@
 <!-- DNS记录管理弹窗 -->
 <div id="dnsModal" class="modal">
   <div class="modal-content" style="width: 90%; max-width: 1000px;">
-    <h3 id="dnsModalTitle">DNS记录管理</h3>
+    <button id="modalCloseBtn2" class="modal-close-btn">×</button>
+    <div class="modal-header">
+      <h3 id="dnsModalTitle">📋 DNS记录管理</h3>
+    </div>
     <div class="modal-buttons">
-      <button id="addDNSRecordBtn">新增DNS记录</button>
-      <button id="closeDNSModal">关闭</button>
+      <button id="addDNSRecordBtn" class="btn btn-success">➕ 新增DNS记录</button>
+      <button id="closeDNSModal" class="btn btn-danger">❌ 关闭</button>
     </div>
     <table id="dnsTable" style="margin-top: 10px;">
       <thead>
         <tr>
-          <th>名称</th>
-          <th>类型</th>
-          <th>内容</th>
-          <th>TTL</th>
-          <th>优先级</th>
-          <th>创建时间</th>
-          <th>操作</th>
+          <th>🏷️ 名称</th>
+          <th>📊 类型</th>
+          <th>📝 内容</th>
+          <th>⏱️ TTL</th>
+          <th>⚡ 优先级</th>
+          <th>📅 创建时间</th>
+          <th>⚙️ 操作</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -92,10 +101,13 @@
 <!-- 添加DNS记录弹窗 -->
 <div id="addDNSModal" class="modal">
   <div class="modal-content">
-    <h3>添加DNS记录</h3>
-    <label>记录名称 (可选):</label>
+    <button id="modalCloseBtn3" class="modal-close-btn">×</button>
+    <div class="modal-header">
+      <h3>➕ 添加DNS记录</h3>
+    </div>
+    <label>🏷️ 记录名称 (可选):</label>
     <input id="dnsNameInput" placeholder="例如: www (留空则使用@)">
-    <label>记录类型:</label>
+    <label>📊 记录类型:</label>
     <select id="dnsTypeSelect">
       <option value="A">A记录 - IPv4地址</option>
       <option value="AAAA">AAAA记录 - IPv6地址</option>
@@ -105,18 +117,18 @@
       <option value="SRV">SRV记录 - 服务定位</option>
       <option value="NS">NS记录 - 域名服务器</option>
     </select>
-    <label>记录内容:</label>
+    <label>📝 记录内容:</label>
     <input id="dnsContentInput" placeholder="根据类型填写对应内容">
-    <label>TTL (生存时间):</label>
+    <label>⏱️ TTL (生存时间):</label>
     <input id="dnsTTLInput" type="number" placeholder="TTL值 (默认: 120)" value="120" min="60" max="86400">
-    <label>优先级 (仅MX/SRV):</label>
+    <label>⚡ 优先级 (仅MX/SRV):</label>
     <input id="dnsPriorityInput" type="number" placeholder="优先级 (可选)" value="0" min="0" max="65535">
     <div class="modal-buttons">
-      <button id="submitDNSRecord">添加记录</button>
-      <button id="closeAddDNSModal">取消</button>
+      <button id="submitDNSRecord" class="btn btn-success">✅ 添加记录</button>
+      <button id="closeAddDNSModal" class="btn btn-danger">❌ 取消</button>
     </div>
     <div class="help-text">
-      <h4>参数说明:</h4>
+      <h4>ℹ️ 参数说明:</h4>
       <ul>
         <li><strong>A记录:</strong> 指向IPv4地址，如 "192.168.1.1"</li>
         <li><strong>AAAA记录:</strong> 指向IPv6地址，如 "2001:db8::1"</li>
@@ -136,6 +148,7 @@ const loginPassword = document.getElementById('loginPassword');
 const loginBtn = document.getElementById('loginBtn');
 const rememberPassword = document.getElementById('rememberPassword');
 const loginFeedback = document.getElementById('loginFeedback');
+const loginCloseBtn = document.getElementById('loginCloseBtn');
 
 // 页面主要元素
 const refreshBtn = document.getElementById('refreshBtn');
@@ -151,6 +164,11 @@ const addDNSModal = document.getElementById('addDNSModal');
 const closeAddDNSModal = document.getElementById('closeAddDNSModal');
 const submitDNSRecord = document.getElementById('submitDNSRecord');
 const accountSelect = document.getElementById('accountSelect');
+
+// 模态框关闭按钮
+const modalCloseBtn1 = document.getElementById('modalCloseBtn1');
+const modalCloseBtn2 = document.getElementById('modalCloseBtn2');
+const modalCloseBtn3 = document.getElementById('modalCloseBtn3');
 
 let currentSubdomainId = null;
 let currentAccountIndex = null;
@@ -287,10 +305,29 @@ registerBtn.addEventListener('click', requireAuth(() => {
     modal.style.display = 'flex';
   }
 }));
+// 现有关闭按钮事件（保留向后兼容性）
 closeModal.addEventListener('click', () => modal.style.display = 'none');
 closeDNSModal.addEventListener('click', () => dnsModal.style.display = 'none');
 addDNSRecordBtn.addEventListener('click', () => addDNSModal.style.display = 'flex');
 closeAddDNSModal.addEventListener('click', () => addDNSModal.style.display = 'none');
+
+// 登录模态框关闭按钮
+loginCloseBtn.addEventListener('click', () => {
+  loginModal.style.display = 'none';
+});
+
+// 其他模态框关闭按钮
+modalCloseBtn1.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+modalCloseBtn2.addEventListener('click', () => {
+  dnsModal.style.display = 'none';
+});
+
+modalCloseBtn3.addEventListener('click', () => {
+  addDNSModal.style.display = 'none';
+});
 
 // 页面加载时检查存储的凭据
 document.addEventListener('DOMContentLoaded', function() {

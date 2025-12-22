@@ -9,12 +9,28 @@ export async function onRequest(context: { request: Request, env: Env }) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // Extract action from URL path
-  const pathParts = url.pathname.split('/');
-  const action = pathParts[pathParts.length - 1]; // get action from path like /create, /update, /delete
+  // For POST requests, get action from body; for GET requests, get from URL
+  let action;
+  let accountIndex, subdomainId, recordId, type, content, ttl, priority, name;
 
-  const body = await request.json();
-  const { accountIndex, subdomainId, recordId, type, content, ttl, priority, name } = body;
+  if (method === 'POST') {
+    const body = await request.json();
+    action = body.action;
+    accountIndex = body.accountIndex;
+    subdomainId = body.subdomainId;
+    recordId = body.record_id || body.recordId;
+    type = body.type;
+    content = body.content;
+    ttl = body.ttl;
+    priority = body.priority;
+    name = body.name;
+  } else {
+    // For GET requests, extract from URL
+    action = url.searchParams.get('action');
+    accountIndex = url.searchParams.get('accountIndex');
+    subdomainId = url.searchParams.get('subdomainId');
+    recordId = url.searchParams.get('recordId');
+  }
 
   // Determine which account to use
   const key = env[`DNSHE_KEY_${accountIndex}`];
@@ -40,7 +56,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
         }
         break;
       case 'create':
-        result = await api.createDnsRecord(subdomainId, type, content, name, ttl || 600, priority);
+        result = await api.createDnsRecord(subdomainId, type, content, name, ttl || 120, priority);
         break;
       case 'update':
         result = await api.updateDnsRecord(recordId, content, ttl, priority);

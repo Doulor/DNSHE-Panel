@@ -280,6 +280,13 @@ td > .btn + .btn {
   margin-left: 5px;
 }
 
+/* 小尺寸按钮样式 */
+.btn-sm {
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  margin: 2px !important;
+}
+
 .modal-buttons {
   margin-top: 20px;
   display: flex;

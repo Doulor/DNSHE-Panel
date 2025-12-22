@@ -572,11 +572,30 @@ async function renewSubdomain(id, accountIndex) {
 async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
   currentAccountIndex = account.replace('账号', '');
-  document.getElementById('dnsModalTitle').textContent = `DNS记录管理 - 子域: ${account.replace('账号', '账号')} - ${subdomainId}`;
-  
+
+  // 首先获取子域名的详细信息以获取完整域名
+  try {
+    const res = await fetch(`/api/subdomains`);
+    const data = await res.json();
+
+    if (data.success && data.subdomains) {
+      const subdomain = data.subdomains.find(sd => sd.id == subdomainId);
+      if (subdomain && subdomain.full_domain) {
+        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - ${subdomain.full_domain}`;
+      } else {
+        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+      }
+    } else {
+      document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+    }
+  } catch (err) {
+    console.error('获取子域名信息失败:', err);
+    document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+  }
+
   const dnsTableBody = document.querySelector('#dnsTable tbody');
   dnsTableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
-  
+
   try {
     const res = await fetch(`/api/dns_records`, {
       method: 'POST',
@@ -584,7 +603,7 @@ async function manageDNSRecords(subdomainId, account) {
       body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
     });
     const data = await res.json();
-    
+
     dnsTableBody.innerHTML = '';
     if (data.success && data.records && data.records.length > 0) {
       data.records.forEach(record => {
@@ -610,7 +629,7 @@ async function manageDNSRecords(subdomainId, account) {
     dnsTableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
     console.error('DNS记录加载失败:', err);
   }
-  
+
   dnsModal.style.display = 'flex';
 }
 
@@ -819,7 +838,26 @@ async function renewSubdomain(id, accountIndex) {
 async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
   currentAccountIndex = account.replace('账号', '');
-  document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域: ${account.replace('账号', '账号')} - ${subdomainId}`;
+
+  // 首先获取子域名的详细信息以获取完整域名
+  try {
+    const res = await fetch(`/api/subdomains`);
+    const data = await res.json();
+
+    if (data.success && data.subdomains) {
+      const subdomain = data.subdomains.find(sd => sd.id == subdomainId);
+      if (subdomain && subdomain.full_domain) {
+        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - ${subdomain.full_domain}`;
+      } else {
+        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+      }
+    } else {
+      document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+    }
+  } catch (err) {
+    console.error('获取子域名信息失败:', err);
+    document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+  }
 
   const dnsTableBody = document.querySelector('#dnsTable tbody');
   dnsTableBody.innerHTML = '<tr><td colspan="7">🔄 加载中...</td></tr>';

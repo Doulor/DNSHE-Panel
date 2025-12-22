@@ -142,7 +142,6 @@
 <!-- 编辑DNS记录弹窗 -->
 <div id="editDNSModal" class="modal">
   <div class="modal-content">
-    <button id="modalCloseBtn4" class="modal-close-btn">×</button>
     <div class="modal-header">
       <h3>✏️ 编辑DNS记录</h3>
     </div>
@@ -435,9 +434,6 @@ modalCloseBtn3.addEventListener('click', () => {
   addDNSModal.style.display = 'none';
 });
 
-modalCloseBtn4.addEventListener('click', () => {
-  editDNSModal.style.display = 'none';
-});
 
 // 编辑DNS记录相关事件监听器
 closeEditDNSModal.addEventListener('click', () => editDNSModal.style.display = 'none');

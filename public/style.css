@@ -282,10 +282,11 @@ td > .btn + .btn {
 
 /* 小尺寸按钮样式 */
 .btn-sm {
-  padding: 6px 10px !important;
+  padding: 8px 16px !important;  /* 增加垂直方向的padding以增加高度，增加水平方向的padding以增加宽度 */
   font-size: 13px !important;
   margin: 2px !important;
-  min-width: 60px; /* 确保按钮有足够的宽度防止文字换行 */
+  min-width: 70px; /* 增加最小宽度以适应长方形比例 */
+  height: auto; /* 确保高度自适应内容 */
 }
 
 .modal-buttons {

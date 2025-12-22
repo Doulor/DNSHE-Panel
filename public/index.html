@@ -139,6 +139,50 @@
   </div>
 </div>
 
+<!-- 编辑DNS记录弹窗 -->
+<div id="editDNSModal" class="modal">
+  <div class="modal-content">
+    <button id="modalCloseBtn4" class="modal-close-btn">×</button>
+    <div class="modal-header">
+      <h3>✏️ 编辑DNS记录</h3>
+    </div>
+    <input type="hidden" id="editRecordId">
+    <label>🏷️ 记录名称 (可选):</label>
+    <input id="editDnsNameInput" placeholder="例如: www (留空则使用@)">
+    <label>📊 记录类型:</label>
+    <select id="editDnsTypeSelect">
+      <option value="A">A记录 - IPv4地址</option>
+      <option value="AAAA">AAAA记录 - IPv6地址</option>
+      <option value="CNAME">CNAME - 别名记录</option>
+      <option value="MX">MX记录 - 邮件交换</option>
+      <option value="TXT">TXT记录 - 文本记录</option>
+      <option value="SRV">SRV记录 - 服务定位</option>
+      <option value="NS">NS记录 - 域名服务器</option>
+    </select>
+    <label>📝 记录内容:</label>
+    <input id="editDnsContentInput" placeholder="根据类型填写对应内容">
+    <label>⏱️ TTL (生存时间):</label>
+    <input id="editDnsTTLInput" type="number" placeholder="TTL值" value="120" min="60" max="86400">
+    <label>⚡ 优先级 (仅MX/SRV):</label>
+    <input id="editDnsPriorityInput" type="number" placeholder="优先级 (可选)" value="0" min="0" max="65535">
+    <div class="modal-buttons">
+      <button id="submitEditDNSRecord" class="btn btn-success">✅ 保存更改</button>
+      <button id="closeEditDNSModal" class="btn btn-danger">❌ 取消</button>
+    </div>
+    <div class="help-text">
+      <h4>ℹ️ 参数说明:</h4>
+      <ul>
+        <li><strong>A记录:</strong> 指向IPv4地址，如 "192.168.1.1"</li>
+        <li><strong>AAAA记录:</strong> 指向IPv6地址，如 "2001:db8::1"</li>
+        <li><strong>CNAME:</strong> 指向另一个域名，如 "example.com"</li>
+        <li><strong>MX记录:</strong> 邮件服务器，如 "mail.example.com"，需设置优先级</li>
+        <li><strong>TXT记录:</strong> 文本内容，如验证信息 "v=spf1 include:_spf.google.com ~all"</li>
+        <li><strong>TTL:</strong> 缓存时间，数值越小更新越快，但查询更多，默认120秒</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 <script>
 // 登录验证相关元素
 const loginModal = document.getElementById('loginModal');
@@ -166,6 +210,18 @@ const accountSelect = document.getElementById('accountSelect');
 const modalCloseBtn1 = document.getElementById('modalCloseBtn1');
 const modalCloseBtn2 = document.getElementById('modalCloseBtn2');
 const modalCloseBtn3 = document.getElementById('modalCloseBtn3');
+const modalCloseBtn4 = document.getElementById('modalCloseBtn4');
+
+// 编辑DNS记录相关元素
+const editDNSModal = document.getElementById('editDNSModal');
+const closeEditDNSModal = document.getElementById('closeEditDNSModal');
+const submitEditDNSRecord = document.getElementById('submitEditDNSRecord');
+const editRecordId = document.getElementById('editRecordId');
+const editDnsNameInput = document.getElementById('editDnsNameInput');
+const editDnsTypeSelect = document.getElementById('editDnsTypeSelect');
+const editDnsContentInput = document.getElementById('editDnsContentInput');
+const editDnsTTLInput = document.getElementById('editDnsTTLInput');
+const editDnsPriorityInput = document.getElementById('editDnsPriorityInput');
 
 let currentSubdomainId = null;
 let currentAccountIndex = null;
@@ -317,6 +373,14 @@ modalCloseBtn1.addEventListener('click', () => {
 modalCloseBtn3.addEventListener('click', () => {
   addDNSModal.style.display = 'none';
 });
+
+modalCloseBtn4.addEventListener('click', () => {
+  editDNSModal.style.display = 'none';
+});
+
+// 编辑DNS记录相关事件监听器
+closeEditDNSModal.addEventListener('click', () => editDNSModal.style.display = 'none');
+submitEditDNSRecord.addEventListener('click', updateDNSRecord);
 
 // 页面加载时检查存储的凭据
 document.addEventListener('DOMContentLoaded', function() {
@@ -796,7 +860,38 @@ submitDNSRecord.addEventListener('click', async () => {
 
 // 编辑DNS记录
 async function editDNSRecord(recordId) {
-  alert('✏️ 编辑功能将在后续版本中添加，目前请先删除记录再重新创建');
+  try {
+    // 获取当前子域名的DNS记录列表，找到要编辑的记录
+    const res = await fetch(`/api/dns_records`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId: currentSubdomainId })
+    });
+    const data = await res.json();
+
+    if (data.success && data.records) {
+      const record = data.records.find(r => r.id == recordId);
+      if (record) {
+        // 填充编辑表单
+        editRecordId.value = record.id;
+        editDnsNameInput.value = record.name || '';
+        editDnsTypeSelect.value = record.type;
+        editDnsContentInput.value = record.content;
+        editDnsTTLInput.value = record.ttl || 120;
+        editDnsPriorityInput.value = record.priority || 0;
+
+        // 显示编辑弹窗
+        editDNSModal.style.display = 'flex';
+      } else {
+        alert('❌ 找不到指定的DNS记录');
+      }
+    } else {
+      alert('❌ 获取DNS记录失败: ' + (data.message || data.error || '未知错误'));
+    }
+  } catch (err) {
+    console.error('编辑DNS记录时出错:', err);
+    alert('❌ 编辑DNS记录时发生错误: ' + err.message);
+  }
 }
 
 // 删除DNS记录
@@ -818,6 +913,73 @@ async function deleteDNSRecord(recordId) {
   if (data.success) {
     // Refresh the DNS records list
     manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
+  }
+}
+
+// 更新DNS记录
+async function updateDNSRecord() {
+  const recordId = editRecordId.value;
+  const name = editDnsNameInput.value || null;
+  const type = editDnsTypeSelect.value;
+  const content = editDnsContentInput.value;
+  const ttl = parseInt(editDnsTTLInput.value) || 120;
+  const priority = parseInt(editDnsPriorityInput.value);
+
+  if (!content) {
+    alert('📝 请填写记录内容');
+    return;
+  }
+  if (ttl < 60 || ttl > 86400) {
+    alert('⏱️ TTL值必须在60-86400之间');
+    return;
+  }
+
+  // MX和SRV记录需要优先级
+  if ((type === 'MX' || type === 'SRV') && isNaN(priority)) {
+    alert('⚡ MX和SRV记录必须设置优先级');
+    return;
+  }
+
+  const payload = {
+    action: 'update',
+    accountIndex: currentAccountIndex,
+    record_id: recordId,
+    type,
+    content,
+    name,
+    ttl
+  };
+
+  // 仅在需要时添加priority字段
+  if (!isNaN(priority) && priority >= 0) {
+    payload.priority = priority;
+  }
+
+  try {
+    const res = await fetch(`/api/dns_records`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      alert('✅ 更新成功');
+      editDNSModal.style.display = 'none';
+      // 清空表单
+      editRecordId.value = '';
+      editDnsNameInput.value = '';
+      editDnsContentInput.value = '';
+      editDnsTTLInput.value = '120';
+      editDnsPriorityInput.value = '0';
+      // 刷新DNS记录列表
+      manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
+    } else {
+      alert(`❌ 更新失败: ${data.message || data.error || '未知错误'}`);
+    }
+  } catch (err) {
+    console.error('更新DNS记录时出错:', err);
+    alert(`❌ 更新DNS记录时发生错误: ${err.message}`);
   }
 }
 </script>

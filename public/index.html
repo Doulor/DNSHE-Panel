@@ -504,8 +504,8 @@ async function loadAccountOptions() {
     
     accounts.forEach(account => {
       const option = document.createElement('option');
-      // 从账号名中提取数字，如"账号1"提取为"1"
-      const accountIndex = account.replace('账号', '');
+      // 从账号名中提取数字，如"账号1"提取为"1"，支持别名
+      const accountIndex = getAccountIndexFromAlias(account);
       option.value = accountIndex;
       option.textContent = account;
       accountSelect.appendChild(option);
@@ -552,7 +552,7 @@ async function loadSubdomains() {
           <td>${sd.expires_at || 'N/A'}</td>
           <td>
             <button class="modal-btn add-btn" onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
-            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">🔄 续期</button>
+            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, getAccountIndexFromAlias('${sd.account}'))">🔄 续期</button>
           </td>
         `;
         tableBody.appendChild(tr);
@@ -614,7 +614,7 @@ async function renewSubdomain(id, accountIndex) {
 // 管理DNS记录
 async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
-  currentAccountIndex = account.replace('账号', '');
+  currentAccountIndex = getAccountIndexFromAlias(account);
 
   // 首先获取子域名的详细信息以获取完整域名
   try {
@@ -637,7 +637,7 @@ async function manageDNSRecords(subdomainId, account) {
   }
 
   const dnsTableBody = document.querySelector('#dnsTable tbody');
-  dnsTableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
+  dnsTableBody.innerHTML = '<tr><td colspan="7">🔄 加载中...</td></tr>';
 
   try {
     const res = await fetch(`/api/dns_records`, {
@@ -666,10 +666,10 @@ async function manageDNSRecords(subdomainId, account) {
         dnsTableBody.appendChild(tr);
       });
     } else {
-      dnsTableBody.innerHTML = '<tr><td colspan="7">暂无DNS记录</td></tr>';
+      dnsTableBody.innerHTML = '<tr><td colspan="7">📋 暂无DNS记录</td></tr>';
     }
   } catch (err) {
-    dnsTableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
+    dnsTableBody.innerHTML = '<tr><td colspan="7">❌ 加载失败</td></tr>';
     console.error('DNS记录加载失败:', err);
   }
 
@@ -843,8 +843,8 @@ async function loadAccountOptions() {
 
     accounts.forEach(account => {
       const option = document.createElement('option');
-      // 从账号名中提取数字，如"账号1"提取为"1"
-      const accountIndex = account.replace('账号', '');
+      // 从账号名中提取数字，如"账号1"提取为"1"，支持别名
+      const accountIndex = getAccountIndexFromAlias(account);
       option.value = accountIndex;
       option.textContent = account;
       accountSelect.appendChild(option);
@@ -891,7 +891,7 @@ async function loadSubdomains() {
           <td>${sd.expires_at || 'N/A'}</td>
           <td>
             <button class="modal-btn add-btn" onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
-            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">🔄 续期</button>
+            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, getAccountIndexFromAlias('${sd.account}'))">🔄 续期</button>
           </td>
         `;
         tableBody.appendChild(tr);
@@ -951,71 +951,6 @@ async function renewSubdomain(id, accountIndex) {
   const data = await res.json();
   alert(data.success ? '✅ 续期成功' : `❌ 续期失败: ${data.message || data.error || '未知错误'}`);
   loadSubdomains();
-}
-
-// 管理DNS记录
-async function manageDNSRecords(subdomainId, account) {
-  currentSubdomainId = subdomainId;
-  currentAccountIndex = account.replace('账号', '');
-
-  // 首先获取子域名的详细信息以获取完整域名
-  try {
-    const res = await fetch(`/api/subdomains`);
-    const data = await res.json();
-
-    if (data.success && data.subdomains) {
-      const subdomain = data.subdomains.find(sd => sd.id == subdomainId);
-      if (subdomain && subdomain.full_domain) {
-        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - ${subdomain.full_domain}`;
-      } else {
-        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-      }
-    } else {
-      document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-    }
-  } catch (err) {
-    console.error('获取子域名信息失败:', err);
-    document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-  }
-
-  const dnsTableBody = document.querySelector('#dnsTable tbody');
-  dnsTableBody.innerHTML = '<tr><td colspan="7">🔄 加载中...</td></tr>';
-
-  try {
-    const res = await fetch(`/api/dns_records`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
-    });
-    const data = await res.json();
-
-    dnsTableBody.innerHTML = '';
-    if (data.success && data.records && data.records.length > 0) {
-      data.records.forEach(record => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${record.name || '@'}</td>
-          <td>${record.type}</td>
-          <td>${record.content}</td>
-          <td>${record.ttl}</td>
-          <td>${record.priority || ''}</td>
-          <td>${record.created_at}</td>
-          <td>
-            <button class="modal-btn add-btn btn-sm" onclick="editDNSRecord(${record.id})">✏️ 编辑</button>
-            <button class="modal-btn cancel-btn btn-sm" onclick="deleteDNSRecord(${record.id})">🗑️ 删除</button>
-          </td>
-        `;
-        dnsTableBody.appendChild(tr);
-      });
-    } else {
-      dnsTableBody.innerHTML = '<tr><td colspan="7">📋 暂无DNS记录</td></tr>';
-    }
-  } catch (err) {
-    dnsTableBody.innerHTML = '<tr><td colspan="7">❌ 加载失败</td></tr>';
-    console.error('DNS记录加载失败:', err);
-  }
-
-  dnsModal.style.display = 'flex';
 }
 
 // 添加DNS记录
@@ -1151,6 +1086,24 @@ function showAddRecordFields(recordType) {
     default:
       document.getElementById('addARecordFields').style.display = 'block'; // 默认显示A记录字段
   }
+}
+
+// 从账号别名中提取账号索引
+function getAccountIndexFromAlias(account) {
+  // 检查是否是"账号X"格式
+  const accountMatch = account.match(/^账号(\d+)$/);
+  if (accountMatch) {
+    return accountMatch[1]; // 返回数字部分
+  }
+
+  // 如果不是标准格式，尝试从别名中提取数字
+  const numberMatch = account.match(/\d+/);
+  if (numberMatch) {
+    return numberMatch[0];
+  }
+
+  // 如果都没找到，返回默认值
+  return '1';
 }
 
 // 编辑DNS记录

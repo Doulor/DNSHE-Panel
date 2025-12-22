@@ -10,7 +10,6 @@
   <!-- 登录模态框 -->
   <div id="loginModal" class="modal login-modal">
     <div class="modal-content login-content">
-      <button id="loginCloseBtn" class="close-btn">×</button>
       <div class="modal-header">
         <h3>🔐 DNS管理面板登录</h3>
       </div>
@@ -147,7 +146,6 @@ const loginPassword = document.getElementById('loginPassword');
 const loginBtn = document.getElementById('loginBtn');
 const rememberPassword = document.getElementById('rememberPassword');
 const loginFeedback = document.getElementById('loginFeedback');
-const loginCloseBtn = document.getElementById('loginCloseBtn');
 
 // 页面主要元素
 const refreshBtn = document.getElementById('refreshBtn');
@@ -310,10 +308,6 @@ closeDNSModal.addEventListener('click', () => dnsModal.style.display = 'none');
 addDNSRecordBtn.addEventListener('click', () => addDNSModal.style.display = 'flex');
 closeAddDNSModal.addEventListener('click', () => addDNSModal.style.display = 'none');
 
-// 登录模态框关闭按钮
-loginCloseBtn.addEventListener('click', () => {
-  loginModal.style.display = 'none';
-});
 
 // 其他模态框关闭按钮
 modalCloseBtn1.addEventListener('click', () => {

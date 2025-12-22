@@ -580,6 +580,11 @@ td > .btn + .btn {
   transform: translateY(-2px);
 }
 
+/* DNS记录字段容器 */
+.record-fields {
+  margin: 15px 0;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   body {

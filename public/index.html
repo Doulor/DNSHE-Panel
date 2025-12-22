@@ -114,24 +114,67 @@
       <option value="SRV">SRV记录 - 服务定位</option>
       <option value="NS">NS记录 - 域名服务器</option>
     </select>
-    <label>📝 记录内容:</label>
-    <input id="dnsContentInput" placeholder="根据类型填写对应内容">
+
+    <!-- A记录输入框 -->
+    <div id="addARecordFields" class="record-fields">
+      <label>🔢 IPv4地址:</label>
+      <input id="dnsContentInputA" placeholder="例如: 192.168.1.1">
+    </div>
+    <!-- AAAA记录输入框 -->
+    <div id="addAAAARecordFields" class="record-fields" style="display: none;">
+      <label>🔢 IPv6地址:</label>
+      <input id="dnsContentInputAAAA" placeholder="例如: 2001:db8::1">
+    </div>
+    <!-- CNAME记录输入框 -->
+    <div id="addCNAMERecordFields" class="record-fields" style="display: none;">
+      <label>🔗 目标域名:</label>
+      <input id="dnsContentInputCNAME" placeholder="例如: example.com">
+    </div>
+    <!-- MX记录输入框 -->
+    <div id="addMXRecordFields" class="record-fields" style="display: none;">
+      <label>📧 邮件服务器:</label>
+      <input id="dnsContentInputMX" placeholder="例如: mail.example.com">
+      <label>⚡ 优先级:</label>
+      <input id="dnsPriorityInputMX" type="number" placeholder="优先级 (0-65535)" value="10" min="0" max="65535">
+    </div>
+    <!-- TXT记录输入框 -->
+    <div id="addTXTRecordFields" class="record-fields" style="display: none;">
+      <label>📝 文本内容:</label>
+      <input id="dnsContentInputTXT" placeholder="例如: v=spf1 include:_spf.google.com ~all">
+    </div>
+    <!-- SRV记录输入框 -->
+    <div id="addSRVRecordFields" class="record-fields" style="display: none;">
+      <label>⚙️ 目标:</label>
+      <input id="dnsContentInputSRV" placeholder="例如: server.example.com">
+      <label>⚡ 优先级:</label>
+      <input id="dnsPriorityInputSRV" type="number" placeholder="优先级" value="0" min="0" max="65535">
+      <label>⚙️ 权重:</label>
+      <input id="dnsWeightInputSRV" type="number" placeholder="权重" value="0" min="0" max="65535">
+      <label>⚙️ 端口:</label>
+      <input id="dnsPortInputSRV" type="number" placeholder="端口" value="0" min="1" max="65535">
+    </div>
+    <!-- NS记录输入框 -->
+    <div id="addNSRecordFields" class="record-fields" style="display: none;">
+      <label>🌐 域名服务器:</label>
+      <input id="dnsContentInputNS" placeholder="例如: ns1.example.com">
+    </div>
+
     <label>⏱️ TTL (生存时间):</label>
     <input id="dnsTTLInput" type="number" placeholder="TTL值 (默认: 120)" value="120" min="60" max="86400">
-    <label>⚡ 优先级 (仅MX/SRV):</label>
-    <input id="dnsPriorityInput" type="number" placeholder="优先级 (可选)" value="0" min="0" max="65535">
     <div class="modal-buttons">
       <button id="submitDNSRecord" class="btn btn-success">✅ 添加记录</button>
       <button id="closeAddDNSModal" class="btn btn-danger">❌ 取消</button>
     </div>
     <div class="help-text">
       <h4>ℹ️ 参数说明:</h4>
-      <ul>
+      <ul id="addRecordHelpText">
         <li><strong>A记录:</strong> 指向IPv4地址，如 "192.168.1.1"</li>
         <li><strong>AAAA记录:</strong> 指向IPv6地址，如 "2001:db8::1"</li>
         <li><strong>CNAME:</strong> 指向另一个域名，如 "example.com"</li>
         <li><strong>MX记录:</strong> 邮件服务器，如 "mail.example.com"，需设置优先级</li>
         <li><strong>TXT记录:</strong> 文本内容，如验证信息 "v=spf1 include:_spf.google.com ~all"</li>
+        <li><strong>SRV记录:</strong> 服务定位记录，包含目标、端口、权重等信息</li>
+        <li><strong>NS记录:</strong> 域名服务器记录，如 "ns1.example.com"</li>
         <li><strong>TTL:</strong> 缓存时间，数值越小更新越快，但查询更多，默认120秒</li>
       </ul>
     </div>
@@ -437,6 +480,11 @@ editDnsTypeSelect.addEventListener('change', function() {
   showEditRecordFields(this.value);
 });
 
+// 添加DNS记录相关事件监听器
+dnsTypeSelect.addEventListener('change', function() {
+  showAddRecordFields(this.value);
+});
+
 // 页面加载时检查存储的凭据
 document.addEventListener('DOMContentLoaded', function() {
   checkStoredCredentials();
@@ -632,30 +680,97 @@ async function manageDNSRecords(subdomainId, account) {
 submitDNSRecord.addEventListener('click', async () => {
   const name = document.getElementById('dnsNameInput').value || null;
   const type = document.getElementById('dnsTypeSelect').value;
-  const content = document.getElementById('dnsContentInput').value;
   const ttl = parseInt(document.getElementById('dnsTTLInput').value) || 120;
-  const priority = parseInt(document.getElementById('dnsPriorityInput').value);
+  let content = '';
+  let priority = 0;
 
-  if (!content) return alert('请填写记录内容');
-  if (ttl < 60 || ttl > 86400) return alert('TTL值必须在60-86400之间');
-
-  // MX和SRV记录需要优先级
-  if ((type === 'MX' || type === 'SRV') && isNaN(priority)) {
-    return alert('MX和SRV记录必须设置优先级');
+  // 根据记录类型获取相应的内容和优先级
+  switch(type) {
+    case 'A':
+      content = document.getElementById('dnsContentInputA').value;
+      if (!content) {
+        alert('请填写IPv4地址');
+        return;
+      }
+      break;
+    case 'AAAA':
+      content = document.getElementById('dnsContentInputAAAA').value;
+      if (!content) {
+        alert('请填写IPv6地址');
+        return;
+      }
+      break;
+    case 'CNAME':
+      content = document.getElementById('dnsContentInputCNAME').value;
+      if (!content) {
+        alert('请填写目标域名');
+        return;
+      }
+      break;
+    case 'MX':
+      content = document.getElementById('dnsContentInputMX').value;
+      priority = parseInt(document.getElementById('dnsPriorityInputMX').value);
+      if (!content) {
+        alert('请填写邮件服务器');
+        return;
+      }
+      if (isNaN(priority)) {
+        alert('请输入有效的优先级');
+        return;
+      }
+      break;
+    case 'TXT':
+      content = document.getElementById('dnsContentInputTXT').value;
+      if (!content) {
+        alert('请填写文本内容');
+        return;
+      }
+      break;
+    case 'SRV':
+      content = document.getElementById('dnsContentInputSRV').value;
+      priority = parseInt(document.getElementById('dnsPriorityInputSRV').value);
+      const weight = parseInt(document.getElementById('dnsWeightInputSRV').value);
+      const port = parseInt(document.getElementById('dnsPortInputSRV').value);
+      if (!content) {
+        alert('请填写目标');
+        return;
+      }
+      if (isNaN(priority) || isNaN(weight) || isNaN(port)) {
+        alert('请输入有效的优先级、权重和端口');
+        return;
+      }
+      // 构建SRV记录内容，格式通常是 "priority weight port target"
+      content = `${priority} ${weight} ${port} ${content}`;
+      break;
+    case 'NS':
+      content = document.getElementById('dnsContentInputNS').value;
+      if (!content) {
+        alert('请填写域名服务器');
+        return;
+      }
+      break;
+    default:
+      alert('不支持的记录类型');
+      return;
   }
 
-  const payload = { 
+  if (ttl < 60 || ttl > 86400) {
+    alert('TTL值必须在60-86400之间');
+    return;
+  }
+
+  const payload = {
     action: 'create',
     accountIndex: currentAccountIndex,
-    subdomainId: currentSubdomainId, 
-    type, 
-    content, 
-    name, 
-    ttl 
+    subdomainId: currentSubdomainId,
+    type,
+    content,
+    name,
+    ttl
   };
-  
-  // 仅在需要时添加priority字段
-  if (!isNaN(priority) && priority >= 0) {
+
+  // 仅在需要时添加priority字段（对于MX和SRV记录）
+  if (!isNaN(priority) && priority >= 0 && (type === 'MX' || type === 'SRV')) {
     payload.priority = priority;
   }
 
@@ -665,13 +780,22 @@ submitDNSRecord.addEventListener('click', async () => {
     body: JSON.stringify(payload)
   });
   const data = await res.json();
-  alert(data.success ? '添加成功' : `添加失败: ${data.message || data.error || '未知错误'}`);
-  
+  alert(data.success ? '✅ 添加成功' : `❌ 添加失败: ${data.message || data.error || '未知错误'}`);
+
   if (data.success) {
     document.getElementById('dnsNameInput').value = '';
-    document.getElementById('dnsContentInput').value = '';
+    document.getElementById('dnsContentInputA').value = '';
+    document.getElementById('dnsContentInputAAAA').value = '';
+    document.getElementById('dnsContentInputCNAME').value = '';
+    document.getElementById('dnsContentInputMX').value = '';
+    document.getElementById('dnsPriorityInputMX').value = '10';
+    document.getElementById('dnsContentInputTXT').value = '';
+    document.getElementById('dnsContentInputSRV').value = '';
+    document.getElementById('dnsPriorityInputSRV').value = '0';
+    document.getElementById('dnsWeightInputSRV').value = '0';
+    document.getElementById('dnsPortInputSRV').value = '0';
+    document.getElementById('dnsContentInputNS').value = '';
     document.getElementById('dnsTTLInput').value = '120';
-    document.getElementById('dnsPriorityInput').value = '0';
     addDNSModal.style.display = 'none';
     // Refresh the DNS records list
     manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
@@ -987,6 +1111,45 @@ function showEditRecordFields(recordType) {
       break;
     default:
       editARecordFields.style.display = 'block'; // 默认显示A记录字段
+  }
+}
+
+// 显示对应记录类型的输入字段（添加DNS记录）
+function showAddRecordFields(recordType) {
+  // 隐藏所有字段容器
+  document.getElementById('addARecordFields').style.display = 'none';
+  document.getElementById('addAAAARecordFields').style.display = 'none';
+  document.getElementById('addCNAMERecordFields').style.display = 'none';
+  document.getElementById('addMXRecordFields').style.display = 'none';
+  document.getElementById('addTXTRecordFields').style.display = 'none';
+  document.getElementById('addSRVRecordFields').style.display = 'none';
+  document.getElementById('addNSRecordFields').style.display = 'none';
+
+  // 根据类型显示对应字段
+  switch(recordType) {
+    case 'A':
+      document.getElementById('addARecordFields').style.display = 'block';
+      break;
+    case 'AAAA':
+      document.getElementById('addAAAARecordFields').style.display = 'block';
+      break;
+    case 'CNAME':
+      document.getElementById('addCNAMERecordFields').style.display = 'block';
+      break;
+    case 'MX':
+      document.getElementById('addMXRecordFields').style.display = 'block';
+      break;
+    case 'TXT':
+      document.getElementById('addTXTRecordFields').style.display = 'block';
+      break;
+    case 'SRV':
+      document.getElementById('addSRVRecordFields').style.display = 'block';
+      break;
+    case 'NS':
+      document.getElementById('addNSRecordFields').style.display = 'block';
+      break;
+    default:
+      document.getElementById('addARecordFields').style.display = 'block'; // 默认显示A记录字段
   }
 }
 

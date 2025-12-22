@@ -9,7 +9,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // For POST requests, get action from body; for GET requests, get from URL
+  // For POST requests, get action from body
   let action;
   let accountIndex, subdomainId, recordId, type, content, ttl, priority, name;
 
@@ -50,19 +50,25 @@ export async function onRequest(context: { request: Request, env: Env }) {
   try {
     switch(action) {
       case 'list':
+        console.log(`调用 listDnsRecords API，subdomainId: ${subdomainId}`);
         result = await api.listDnsRecords(subdomainId);
+        console.log('listDnsRecords 结果:', result);
         if (!result.success) {
           console.error('DNS API 调用失败:', result);
         }
         break;
       case 'create':
+        console.log(`调用 createDnsRecord API，参数:`, { subdomainId, type, content, name, ttl, priority });
         result = await api.createDnsRecord(subdomainId, type, content, name, ttl, priority);
+        console.log('createDnsRecord 结果:', result);
         break;
       case 'update':
         result = await api.updateDnsRecord(recordId, content, ttl, priority);
+        console.log('updateDnsRecord 结果:', result);
         break;
       case 'delete':
         result = await api.deleteDnsRecord(recordId);
+        console.log('deleteDnsRecord 结果:', result);
         break;
       default:
         return new Response(JSON.stringify({ success: false, message: '未知操作' }), {

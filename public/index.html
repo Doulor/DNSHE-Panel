@@ -73,13 +73,12 @@
 <!-- DNS记录管理弹窗 -->
 <div id="dnsModal" class="modal">
   <div class="modal-content" style="width: 90%; max-width: 1000px;">
-    <button id="modalCloseBtn2" class="modal-close-btn">×</button>
     <div class="modal-header">
       <h3 id="dnsModalTitle">📋 DNS记录管理</h3>
-    </div>
-    <div class="modal-buttons">
-      <button id="addDNSRecordBtn" class="btn btn-success">➕ 新增DNS记录</button>
-      <button id="closeDNSModal" class="btn btn-danger">❌ 关闭</button>
+      <div class="modal-actions">
+        <button id="addDNSRecordBtn" class="modal-btn add-btn">➕ 新增</button>
+        <button id="closeDNSModal" class="modal-btn cancel-btn">❌</button>
+      </div>
     </div>
     <table id="dnsTable" style="margin-top: 10px;">
       <thead>

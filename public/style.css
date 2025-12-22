@@ -88,26 +88,86 @@ h1 {
 
 .btn-success {
   background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  margin: 4px;
+  cursor: pointer;
 }
 
 .btn-success:hover {
   background: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-success:active {
+  transform: translateY(0);
 }
 
 .btn-danger {
   background: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  margin: 4px;
+  cursor: pointer;
 }
 
 .btn-danger:hover {
   background: #d60a6d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
 }
 
 .btn-warning {
   background: var(--warning-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  margin: 4px;
+  cursor: pointer;
 }
 
 .btn-warning:hover {
   background: #e67e00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-warning:active {
+  transform: translateY(0);
 }
 
 table {
@@ -313,8 +373,7 @@ tr:hover {
 .remember-container input {
   margin-right: 10px;
   width: auto; /* 确保复选框保持原始大小 */
-  align-self: flex-start;
-  margin-top: 3px; /* 调整垂直对齐 */
+  align-self: center; /* 居中对齐 */
 }
 
 .remember-container label {

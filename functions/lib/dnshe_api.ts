@@ -58,8 +58,12 @@ export class DNSHESubdomainAPI {
     return this.request('dns_records', 'list', 'GET', { subdomain_id });
   }
 
-  createDnsRecord(subdomain_id: number, type: string, content: string, name?: string, ttl: number = 120, priority?: number) {
-    return this.request('dns_records', 'create', 'POST', { subdomain_id, type, content, name, ttl, priority });
+  createDnsRecord(subdomain_id: number, type: string, content: string, name?: string, ttl?: number, priority?: number) {
+    const data: any = { subdomain_id, type, content };
+    if (name !== undefined) data.name = name;
+    if (ttl !== undefined) data.ttl = ttl;
+    if (priority !== undefined) data.priority = priority;
+    return this.request('dns_records', 'create', 'POST', data);
   }
 
   updateDnsRecord(record_id: number, content?: string, ttl?: number, priority?: number) {

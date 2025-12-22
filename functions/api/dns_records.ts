@@ -56,7 +56,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
         }
         break;
       case 'create':
-        result = await api.createDnsRecord(subdomainId, type, content, name, ttl || 120, priority);
+        result = await api.createDnsRecord(subdomainId, type, content, name, ttl, priority);
         break;
       case 'update':
         result = await api.updateDnsRecord(recordId, content, ttl, priority);

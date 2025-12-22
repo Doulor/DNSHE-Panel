@@ -285,6 +285,7 @@ td > .btn + .btn {
   padding: 6px 10px !important;
   font-size: 13px !important;
   margin: 2px !important;
+  min-width: 60px; /* 确保按钮有足够的宽度防止文字换行 */
 }
 
 .modal-buttons {

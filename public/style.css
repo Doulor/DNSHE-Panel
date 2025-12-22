@@ -271,6 +271,15 @@ tr:hover {
   margin: 0 5px;
 }
 
+.btn-spacing {
+  margin-right: 8px;
+}
+
+/* Add spacing between buttons in table cells */
+td > .btn + .btn {
+  margin-left: 5px;
+}
+
 .modal-buttons {
   margin-top: 20px;
   display: flex;

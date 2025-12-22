@@ -1,64 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <title>DNS 多账号管理面板</title>
 <link rel="stylesheet" href="style.css">
-<style>
-  .modal-content {
-    padding: 20px;
-  }
-  .modal-buttons {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-  }
-  .modal-content label {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
-  }
-  .modal-content input, .modal-content select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    box-sizing: border-box;
-  }
-  .help-text {
-    margin-top: 15px;
-    padding: 10px;
-    background: #f0f0f0;
-    border-radius: 4px;
-  }
-  .help-text ul {
-    padding-left: 20px;
-  }
-  .help-text li {
-    margin-bottom: 5px;
-  }
-</style>
 </head>
 <body>
-<h1>DNS 多账号管理面板</h1>
+<div class="container">
+  <!-- 登录模态框 -->
+  <div id="loginModal" class="modal login-modal">
+    <div class="modal-content login-content">
+      <h3>🔐 登录管理面板</h3>
+      <input type="password" id="loginPassword" class="login-input" placeholder="请输入访问密码">
+      <button id="loginBtn" class="login-btn">登录</button>
+    </div>
+  </div>
 
-<button id="refreshBtn">刷新所有账号子域名</button>
-<button id="registerBtn">注册新子域</button>
+  <h1>🔐 DNS 多账号管理面板</h1>
 
-<table id="subdomainTable">
-  <thead>
-    <tr>
-      <th>子域名</th>
-      <th>根域</th>
-      <th>状态</th>
-      <th>所属账号</th>
-      <th>创建时间</th>
-      <th>到期时间</th>
-      <th>操作</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  <div class="header-actions">
+    <button id="refreshBtn" class="btn btn-primary">
+      <span>🔄</span> 刷新子域名
+    </button>
+    <button id="registerBtn" class="btn btn-success">
+      <span>➕</span> 注册新子域
+    </button>
+  </div>
+
+  <table id="subdomainTable">
+    <thead>
+      <tr>
+        <th>🌐 子域名</th>
+        <th>🏠 根域</th>
+        <th>✅ 状态</th>
+        <th>👤 所属账号</th>
+        <th>📅 创建时间</th>
+        <th>⏰ 到期时间</th>
+        <th>⚙️ 操作</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
 <!-- 注册子域弹窗 -->
 <div id="modal" class="modal">
@@ -214,7 +196,7 @@ async function loadAccountOptions() {
 }
 
 async function loadSubdomains() {
-  tableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
+  tableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
   try {
     const res = await fetch('/api/subdomains');
     const data = await res.json();
@@ -232,17 +214,16 @@ async function loadSubdomains() {
           <td>${sd.expires_at || 'N/A'}</td>
           <td>
             <button onclick="manageDNSRecords(${sd.id}, '${sd.account}')">管理DNS</button>
-            <button onclick="deleteSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">删除</button>
             <button onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">续期</button>
           </td>
         `;
         tableBody.appendChild(tr);
       });
     } else {
-      tableBody.innerHTML = '<tr><td colspan="7">暂无子域名</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="6">暂无子域名</td></tr>';
     }
   } catch (err) {
-    tableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
     console.error(err);
   }
 }
@@ -416,7 +397,27 @@ async function deleteDNSRecord(recordId) {
 }
 
 // 初始加载
-loadSubdomains();
+// 显示登录模态框，要求用户输入密码
+document.addEventListener('DOMContentLoaded', function() {
+  // 显示登录框
+  loginModal.style.display = 'flex';
+  loginPassword.focus();
+});
+
+// 添加认证API调用的函数
+async function authenticate(password) {
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('认证请求失败:', error);
+    return { success: false, message: '网络错误' };
+  }
+}
 </script>
 </body>
 </html>

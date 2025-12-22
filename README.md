@@ -12,7 +12,9 @@ dns-panel/
 ├─ functions/
 │   ├─ api/
 │   │   ├─ subdomains.ts ← 子域名管理 API
-│   │   └─ dns.ts        ← DNS记录管理 API
+│   │   ├─ dns_records.ts ← DNS记录管理 API
+│   │   ├─ auth.ts       ← 认证 API
+│   │   └─ ...           ← 其他API
 │   └─ lib/
 │       └─ dnshe_api.ts  ← 封装 DNSHE API
 ├─ wrangler.toml
@@ -22,9 +24,10 @@ dns-panel/
 ## 功能特性
 
 - ✅ 动态多账号支持（无限账号）
-- ✅ 子域名管理（注册/删除/续期）
+- ✅ 子域名管理（注册/续期）
 - ✅ DNS记录管理（增删改查）
-- ✅ 美观的前端界面
+- ✅ 现代化UI界面
+- ✅ 登录密码保护
 - ✅ 安全的API调用
 
 ## 如何使用
@@ -40,8 +43,9 @@ wrangler login
 # 已完成，当前目录即为项目目录
 ```
 
-### ✅ 第三步：设置 DNSHE 密钥（核心）
+### ✅ 第三步：设置环境变量（核心）
 ```bash
+# DNSHE API 密钥（可设置多个账号）
 wrangler pages secret put DNSHE_KEY_1
 wrangler pages secret put DNSHE_SECRET_1
 wrangler pages secret put DNSHE_KEY_2
@@ -49,6 +53,9 @@ wrangler pages secret put DNSHE_SECRET_2
 wrangler pages secret put DNSHE_KEY_3
 wrangler pages secret put DNSHE_SECRET_3
 # 可以继续添加更多账号，如 DNSHE_KEY_4/DNSHE_SECRET_4 等
+
+# 面板访问密码
+wrangler pages secret put DNS_PANEL_PASSWORD
 ```
 
 这一步决定了你是不是在裸奔，别跳过。
@@ -77,10 +84,18 @@ wrangler pages deploy
 ## 使用功能
 
 - 刷新所有账号的子域列表
-- 注册/删除/续期子域
+- 注册/续期子域
 - 管理DNS记录（新增/编辑/删除）
+- 现代化UI界面
+- 登录密码保护
 - 动态账号支持（新增账号只需在环境变量中添加即可）
 
 ## 扩展账号
 
 新增账号只需在 Cloudflare Pages → Environment Variables 添加新的 DNSHE_KEY_N / DNSHE_SECRET_N，无需修改任何代码。
+
+## 安全说明
+
+- 所有敏感信息（API密钥、访问密码）都通过环境变量管理
+- 访问面板需要输入正确密码
+- API调用使用安全的认证机制

@@ -437,7 +437,7 @@ td > .btn + .btn {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s;
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 .login-btn:hover {
@@ -449,10 +449,13 @@ td > .btn + .btn {
   cursor: not-allowed;
 }
 
-.login-btn-container {
-  text-align: right;
-  margin-top: 15px;
+.login-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
 }
+
 
 .login-feedback {
   margin-top: 10px;

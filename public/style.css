@@ -313,6 +313,8 @@ tr:hover {
 .remember-container input {
   margin-right: 10px;
   width: auto; /* 确保复选框保持原始大小 */
+  align-self: flex-start;
+  margin-top: 3px; /* 调整垂直对齐 */
 }
 
 .remember-container label {

@@ -384,8 +384,8 @@ async function loadSubdomains() {
           <td>${sd.created_at}</td>
           <td>${sd.expires_at || 'N/A'}</td>
           <td>
-            <button onclick="manageDNSRecords(${sd.id}, '${sd.account}')">管理DNS</button>
-            <button onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">续期</button>
+            <button class="btn btn-success" onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
+            <button class="btn btn-warning" onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">🔄 续期</button>
           </td>
         `;
         tableBody.appendChild(tr);

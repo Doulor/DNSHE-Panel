@@ -147,7 +147,7 @@
     </div>
     <input type="hidden" id="editRecordId">
     <label>🏷️ 记录名称 (可选):</label>
-    <input id="editDnsNameInput" placeholder="例如: www (留空则使用@)">
+    <input id="editDnsNameInput" placeholder="例如: www (留空则使用@)" readonly>
     <label>📊 记录类型:</label>
     <select id="editDnsTypeSelect">
       <option value="A">A记录 - IPv4地址</option>
@@ -1011,7 +1011,7 @@ async function editDNSRecord(recordId) {
       if (record) {
         // 填充编辑表单
         editRecordId.value = record.id;
-        editDnsNameInput.value = record.name || '';
+        editDnsNameInput.value = record.name || '@';  // 显示记录名称，如果是空则显示@
         editDnsTypeSelect.value = record.type;
         editDnsTTLInput.value = record.ttl || 120;
 
@@ -1085,7 +1085,7 @@ async function deleteDNSRecord(recordId) {
 // 更新DNS记录
 async function updateDNSRecord() {
   const recordId = editRecordId.value;
-  const name = editDnsNameInput.value || null;
+  const name = null;  // 由于名称字段现在是只读的，我们不更新名称，保持原值
   const type = editDnsTypeSelect.value;
   const ttl = parseInt(editDnsTTLInput.value) || 120;
   let content = '';

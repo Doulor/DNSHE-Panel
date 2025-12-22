@@ -11,6 +11,12 @@ export class DNSHESubdomainAPI {
 
   async request(endpoint: string, action: string, method: string = 'GET', data: any = null) {
     let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}`;
+    if (method === 'GET' && data) {
+      // 添加GET请求的参数
+      const params = new URLSearchParams(data);
+      url += `&${params.toString()}`;
+    }
+
     const options: RequestInit = {
       method,
       headers: {
@@ -19,6 +25,7 @@ export class DNSHESubdomainAPI {
         'Content-Type': 'application/json'
       }
     };
+
     if (method === 'POST' && data) {
       options.body = JSON.stringify(data);
     }
@@ -29,6 +36,10 @@ export class DNSHESubdomainAPI {
 
   listSubdomains() {
     return this.request('subdomains', 'list', 'GET');
+  }
+
+  getSubdomain(subdomain_id: number) {
+    return this.request('subdomains', 'get', 'GET', { subdomain_id });
   }
 
   registerSubdomain(subdomain: string, rootdomain: string) {
@@ -47,7 +58,7 @@ export class DNSHESubdomainAPI {
     return this.request('dns_records', 'list', 'GET', { subdomain_id });
   }
 
-  createDnsRecord(subdomain_id: number, type: string, content: string, name?: string, ttl?: number, priority?: number) {
+  createDnsRecord(subdomain_id: number, type: string, content: string, name?: string, ttl: number = 120, priority?: number) {
     return this.request('dns_records', 'create', 'POST', { subdomain_id, type, content, name, ttl, priority });
   }
 

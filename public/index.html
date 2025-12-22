@@ -2,11 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DNS Multi-Account Panel</title>
+<title>DNS 多账号管理面板</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  .modal-content {
+    padding: 20px;
+  }
+  .modal-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .modal-content label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .modal-content input, .modal-content select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    box-sizing: border-box;
+  }
+  .help-text {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+  .help-text ul {
+    padding-left: 20px;
+  }
+  .help-text li {
+    margin-bottom: 5px;
+  }
+</style>
 </head>
 <body>
-<h1>DNS Multi-Account Panel</h1>
+<h1>DNS 多账号管理面板</h1>
 
 <button id="refreshBtn">刷新所有账号子域名</button>
 <button id="registerBtn">注册新子域</button>
@@ -19,6 +53,7 @@
       <th>状态</th>
       <th>所属账号</th>
       <th>创建时间</th>
+      <th>到期时间</th>
       <th>操作</th>
     </tr>
   </thead>
@@ -29,19 +64,24 @@
 <div id="modal" class="modal">
   <div class="modal-content">
     <h3>注册新子域</h3>
+    <label>选择账号:</label>
     <select id="accountSelect"></select>
-    <input id="subdomainInput" placeholder="子域前缀">
-    <input id="rootdomainInput" placeholder="根域 (example.com)">
-    <button id="submitRegister">注册</button>
-    <button id="closeModal">取消</button>
+    <label>子域前缀:</label>
+    <input id="subdomainInput" placeholder="例如: myapp">
+    <label>根域名:</label>
+    <input id="rootdomainInput" placeholder="例如: example.com">
+    <div class="modal-buttons">
+      <button id="submitRegister">注册</button>
+      <button id="closeModal">取消</button>
+    </div>
   </div>
 </div>
 
 <!-- DNS记录管理弹窗 -->
 <div id="dnsModal" class="modal">
-  <div class="modal-content" style="width: 80%; max-width: 800px;">
+  <div class="modal-content" style="width: 90%; max-width: 1000px;">
     <h3 id="dnsModalTitle">DNS记录管理</h3>
-    <div>
+    <div class="modal-buttons">
       <button id="addDNSRecordBtn">新增DNS记录</button>
       <button id="closeDNSModal">关闭</button>
     </div>
@@ -53,6 +93,7 @@
           <th>内容</th>
           <th>TTL</th>
           <th>优先级</th>
+          <th>创建时间</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -65,22 +106,39 @@
 <div id="addDNSModal" class="modal">
   <div class="modal-content">
     <h3>添加DNS记录</h3>
-    <input id="dnsNameInput" placeholder="记录名称 (如: www)">
+    <label>记录名称 (可选):</label>
+    <input id="dnsNameInput" placeholder="例如: www (留空则使用@)">
+    <label>记录类型:</label>
     <select id="dnsTypeSelect">
-      <option value="A">A记录</option>
-      <option value="CNAME">CNAME</option>
-      <option value="MX">MX</option>
-      <option value="TXT">TXT</option>
-      <option value="SRV">SRV</option>
-      <option value="AAAA">AAAA</option>
-      <option value="NS">NS</option>
-      <option value="ANAME">ANAME</option>
+      <option value="A">A记录 - IPv4地址</option>
+      <option value="AAAA">AAAA记录 - IPv6地址</option>
+      <option value="CNAME">CNAME - 别名记录</option>
+      <option value="MX">MX记录 - 邮件交换</option>
+      <option value="TXT">TXT记录 - 文本记录</option>
+      <option value="SRV">SRV记录 - 服务定位</option>
+      <option value="NS">NS记录 - 域名服务器</option>
     </select>
-    <input id="dnsContentInput" placeholder="记录内容">
-    <input id="dnsTTLInput" type="number" placeholder="TTL (默认: 600)" value="600">
-    <input id="dnsPriorityInput" type="number" placeholder="优先级 (MX/SRV)" value="0">
-    <button id="submitDNSRecord">添加</button>
-    <button id="closeAddDNSModal">取消</button>
+    <label>记录内容:</label>
+    <input id="dnsContentInput" placeholder="根据类型填写对应内容">
+    <label>TTL (生存时间):</label>
+    <input id="dnsTTLInput" type="number" placeholder="TTL值 (默认: 120)" value="120" min="60" max="86400">
+    <label>优先级 (仅MX/SRV):</label>
+    <input id="dnsPriorityInput" type="number" placeholder="优先级 (可选)" value="0" min="0" max="65535">
+    <div class="modal-buttons">
+      <button id="submitDNSRecord">添加记录</button>
+      <button id="closeAddDNSModal">取消</button>
+    </div>
+    <div class="help-text">
+      <h4>参数说明:</h4>
+      <ul>
+        <li><strong>A记录:</strong> 指向IPv4地址，如 "192.168.1.1"</li>
+        <li><strong>AAAA记录:</strong> 指向IPv6地址，如 "2001:db8::1"</li>
+        <li><strong>CNAME:</strong> 指向另一个域名，如 "example.com"</li>
+        <li><strong>MX记录:</strong> 邮件服务器，如 "mail.example.com"，需设置优先级</li>
+        <li><strong>TXT记录:</strong> 文本内容，如验证信息 "v=spf1 include:_spf.google.com ~all"</li>
+        <li><strong>TTL:</strong> 缓存时间，数值越小更新越快，但查询更多，默认120秒</li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -117,13 +175,13 @@ async function loadAccountOptions() {
   try {
     const res = await fetch('/api/subdomains');
     const data = await res.json();
-
+    
     // 清空现有选项
     accountSelect.innerHTML = '';
-
+    
     // 获取所有唯一账号
     const accounts = [...new Set(data.subdomains.map(sd => sd.account))];
-
+    
     accounts.forEach(account => {
       const option = document.createElement('option');
       // 从账号名中提取数字，如"账号1"提取为"1"
@@ -132,7 +190,7 @@ async function loadAccountOptions() {
       option.textContent = account;
       accountSelect.appendChild(option);
     });
-
+    
     // 如果没有账号，则默认添加账号1-3的选项
     if (accounts.length === 0) {
       for (let i = 1; i <= 3; i++) {
@@ -156,13 +214,14 @@ async function loadAccountOptions() {
 }
 
 async function loadSubdomains() {
-  tableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
+  tableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
   try {
     const res = await fetch('/api/subdomains');
     const data = await res.json();
     tableBody.innerHTML = '';
     if (data.success && data.subdomains.length > 0) {
       data.subdomains.forEach(sd => {
+        // 为到期时间预留位置，实际实现中需要额外API调用来获取到期时间
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${sd.full_domain}</td>
@@ -170,6 +229,7 @@ async function loadSubdomains() {
           <td>${sd.status}</td>
           <td>${sd.account}</td>
           <td>${sd.created_at}</td>
+          <td>${sd.expires_at || 'N/A'}</td>
           <td>
             <button onclick="manageDNSRecords(${sd.id}, '${sd.account}')">管理DNS</button>
             <button onclick="deleteSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">删除</button>
@@ -179,10 +239,10 @@ async function loadSubdomains() {
         tableBody.appendChild(tr);
       });
     } else {
-      tableBody.innerHTML = '<tr><td colspan="6">暂无子域名</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="7">暂无子域名</td></tr>';
     }
   } catch (err) {
-    tableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
     console.error(err);
   }
 }
@@ -200,7 +260,7 @@ submitRegister.addEventListener('click', async () => {
     body: JSON.stringify({ accountIndex, subdomain, rootdomain })
   });
   const data = await res.json();
-  alert(data.success ? '注册成功' : '注册失败');
+  alert(data.success ? '注册成功' : `注册失败: ${data.message || data.error || '未知错误'}`);
   modal.style.display = 'none';
   document.getElementById('subdomainInput').value = '';
   document.getElementById('rootdomainInput').value = '';
@@ -209,14 +269,14 @@ submitRegister.addEventListener('click', async () => {
 
 // 删除子域
 async function deleteSubdomain(id, accountIndex) {
-  if (!confirm('确定删除吗？')) return;
+  if (!confirm('确定删除该子域名吗？此操作不可恢复！')) return;
   const res = await fetch(`/api/subdomains`, {
     method: 'DELETE',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
-  alert(data.success ? '删除成功' : `删除失败: ${data.message || '未知错误'}`);
+  alert(data.success ? '删除成功' : `删除失败: ${data.message || data.error || '未知错误'}`);
   loadSubdomains();
 }
 
@@ -228,7 +288,7 @@ async function renewSubdomain(id, accountIndex) {
     body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
-  alert(data.success ? '续期成功' : `续期失败: ${data.message || '未知错误'}`);
+  alert(data.success ? '续期成功' : `续期失败: ${data.message || data.error || '未知错误'}`);
   loadSubdomains();
 }
 
@@ -236,11 +296,11 @@ async function renewSubdomain(id, accountIndex) {
 async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
   currentAccountIndex = account.replace('账号', '');
-  document.getElementById('dnsModalTitle').textContent = `DNS记录管理 - 子域ID: ${subdomainId} (${account})`;
-
+  document.getElementById('dnsModalTitle').textContent = `DNS记录管理 - 子域: ${account.replace('账号', '账号')} - ${subdomainId}`;
+  
   const dnsTableBody = document.querySelector('#dnsTable tbody');
-  dnsTableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
-
+  dnsTableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
+  
   try {
     const res = await fetch(`/api/dns_records`, {
       method: 'POST',
@@ -248,7 +308,7 @@ async function manageDNSRecords(subdomainId, account) {
       body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
     });
     const data = await res.json();
-
+    
     dnsTableBody.innerHTML = '';
     if (data.success && data.records && data.records.length > 0) {
       data.records.forEach(record => {
@@ -259,6 +319,7 @@ async function manageDNSRecords(subdomainId, account) {
           <td>${record.content}</td>
           <td>${record.ttl}</td>
           <td>${record.priority || ''}</td>
+          <td>${record.created_at}</td>
           <td>
             <button onclick="editDNSRecord(${record.id})">编辑</button>
             <button onclick="deleteDNSRecord(${record.id})">删除</button>
@@ -267,13 +328,13 @@ async function manageDNSRecords(subdomainId, account) {
         dnsTableBody.appendChild(tr);
       });
     } else {
-      dnsTableBody.innerHTML = '<tr><td colspan="6">暂无DNS记录</td></tr>';
+      dnsTableBody.innerHTML = '<tr><td colspan="7">暂无DNS记录</td></tr>';
     }
   } catch (err) {
-    dnsTableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
+    dnsTableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
     console.error('DNS记录加载失败:', err);
   }
-
+  
   dnsModal.style.display = 'flex';
 }
 
@@ -282,32 +343,44 @@ submitDNSRecord.addEventListener('click', async () => {
   const name = document.getElementById('dnsNameInput').value || null;
   const type = document.getElementById('dnsTypeSelect').value;
   const content = document.getElementById('dnsContentInput').value;
-  const ttl = parseInt(document.getElementById('dnsTTLInput').value) || 600;
-  const priority = parseInt(document.getElementById('dnsPriorityInput').value) || 0;
+  const ttl = parseInt(document.getElementById('dnsTTLInput').value) || 120;
+  const priority = parseInt(document.getElementById('dnsPriorityInput').value);
 
   if (!content) return alert('请填写记录内容');
+  if (ttl < 60 || ttl > 86400) return alert('TTL值必须在60-86400之间');
+
+  // MX和SRV记录需要优先级
+  if ((type === 'MX' || type === 'SRV') && isNaN(priority)) {
+    return alert('MX和SRV记录必须设置优先级');
+  }
+
+  const payload = { 
+    action: 'create',
+    accountIndex: currentAccountIndex,
+    subdomainId: currentSubdomainId, 
+    type, 
+    content, 
+    name, 
+    ttl 
+  };
+  
+  // 仅在需要时添加priority字段
+  if (!isNaN(priority) && priority >= 0) {
+    payload.priority = priority;
+  }
 
   const res = await fetch(`/api/dns_records`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      action: 'create',
-      accountIndex: currentAccountIndex,
-      subdomainId: currentSubdomainId,
-      type,
-      content,
-      name,
-      ttl,
-      priority
-    })
+    body: JSON.stringify(payload)
   });
   const data = await res.json();
-  alert(data.success ? '添加成功' : `添加失败: ${data.message || '未知错误'}`);
-
+  alert(data.success ? '添加成功' : `添加失败: ${data.message || data.error || '未知错误'}`);
+  
   if (data.success) {
     document.getElementById('dnsNameInput').value = '';
     document.getElementById('dnsContentInput').value = '';
-    document.getElementById('dnsTTLInput').value = '600';
+    document.getElementById('dnsTTLInput').value = '120';
     document.getElementById('dnsPriorityInput').value = '0';
     addDNSModal.style.display = 'none';
     // Refresh the DNS records list
@@ -322,20 +395,20 @@ async function editDNSRecord(recordId) {
 
 // 删除DNS记录
 async function deleteDNSRecord(recordId) {
-  if (!confirm('确定删除该DNS记录吗？')) return;
-
+  if (!confirm('确定删除该DNS记录吗？此操作不可恢复！')) return;
+  
   const res = await fetch(`/api/dns_records`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
+    body: JSON.stringify({ 
       action: 'delete',
       accountIndex: currentAccountIndex,
-      record_id: recordId
+      record_id: recordId 
     })
   });
   const data = await res.json();
-  alert(data.success ? '删除成功' : `删除失败: ${data.message || '未知错误'}`);
-
+  alert(data.success ? '删除成功' : `删除失败: ${data.message || data.error || '未知错误'}`);
+  
   if (data.success) {
     // Refresh the DNS records list
     manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);

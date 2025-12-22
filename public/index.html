@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>DNS 管理面板</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    button { margin: 4px; }
+    pre { background: #f6f6f6; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>DNS 控制台</h1>
+
+  <button onclick="listSubdomains()">列出子域名</button>
+  <button onclick="createSubdomain()">创建子域名</button>
+
+  <pre id="out"></pre>
+
+  <script>
+    const out = document.getElementById("out");
+
+    async function listSubdomains() {
+      const r = await fetch("/api/subdomains");
+      out.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+
+    async function createSubdomain() {
+      const sub = prompt("子域名前缀，如 test");
+      const root = prompt("根域名，如 ccwu.cc");
+      const r = await fetch("/api/subdomains", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subdomain: sub, rootdomain: root })
+      });
+      out.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+  </script>
+</body>
+</html>

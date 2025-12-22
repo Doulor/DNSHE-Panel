@@ -13,8 +13,15 @@ export class DNSHESubdomainAPI {
     let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}`;
     if (method === 'GET' && data) {
       // 添加GET请求的参数
-      const params = new URLSearchParams(data);
-      url += `&${params.toString()}`;
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      }
+      if (params.toString()) {
+        url += `&${params.toString()}`;
+      }
     }
 
     const options: RequestInit = {

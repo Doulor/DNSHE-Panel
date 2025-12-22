@@ -216,7 +216,7 @@ async function deleteSubdomain(id, accountIndex) {
     body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
-  alert(data.success ? '删除成功' : '删除失败');
+  alert(data.success ? '删除成功' : `删除失败: ${data.message || '未知错误'}`);
   loadSubdomains();
 }
 
@@ -228,7 +228,7 @@ async function renewSubdomain(id, accountIndex) {
     body: JSON.stringify({ subdomain_id: id, accountIndex })
   });
   const data = await res.json();
-  alert(data.success ? '续期成功' : '续期失败');
+  alert(data.success ? '续期成功' : `续期失败: ${data.message || '未知错误'}`);
   loadSubdomains();
 }
 
@@ -242,7 +242,7 @@ async function manageDNSRecords(subdomainId, account) {
   dnsTableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
 
   try {
-    const res = await fetch(`/api/dns/list`, {
+    const res = await fetch(`/api/dns_records`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
@@ -271,7 +271,7 @@ async function manageDNSRecords(subdomainId, account) {
     }
   } catch (err) {
     dnsTableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
-    console.error(err);
+    console.error('DNS记录加载失败:', err);
   }
 
   dnsModal.style.display = 'flex';
@@ -287,7 +287,7 @@ submitDNSRecord.addEventListener('click', async () => {
 
   if (!content) return alert('请填写记录内容');
 
-  const res = await fetch(`/api/dns/create`, {
+  const res = await fetch(`/api/dns_records`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
@@ -302,7 +302,7 @@ submitDNSRecord.addEventListener('click', async () => {
     })
   });
   const data = await res.json();
-  alert(data.success ? '添加成功' : '添加失败');
+  alert(data.success ? '添加成功' : `添加失败: ${data.message || '未知错误'}`);
 
   if (data.success) {
     document.getElementById('dnsNameInput').value = '';
@@ -324,7 +324,7 @@ async function editDNSRecord(recordId) {
 async function deleteDNSRecord(recordId) {
   if (!confirm('确定删除该DNS记录吗？')) return;
 
-  const res = await fetch(`/api/dns/delete`, {
+  const res = await fetch(`/api/dns_records`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
@@ -334,7 +334,7 @@ async function deleteDNSRecord(recordId) {
     })
   });
   const data = await res.json();
-  alert(data.success ? '删除成功' : '删除失败');
+  alert(data.success ? '删除成功' : `删除失败: ${data.message || '未知错误'}`);
 
   if (data.success) {
     // Refresh the DNS records list

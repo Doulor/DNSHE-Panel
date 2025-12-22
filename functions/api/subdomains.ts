@@ -10,7 +10,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
   const method = request.method;
 
   if (method === "GET") {
-    const accounts: { key: string; secret: string; name: string }[] = [];
+    const accounts: { key: string; secret: string; index: string }[] = [];
 
     // 动态扫描所有 DNSHE_KEY_* / DNSHE_SECRET_* 配对
     Object.keys(env).forEach(k => {
@@ -21,7 +21,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
           accounts.push({
             key: env[k],
             secret: env[secretName],
-            name: `账号${idx}`
+            index: idx
           });
         }
       }
@@ -41,12 +41,13 @@ export async function onRequest(context: { request: Request, env: Env }) {
         if (data.success) {
           const subdomainsWithAccount = data.subdomains.map((sd: any) => ({
             ...sd,
-            account: acc.name
+            accountIndex: acc.index,
+            account: `账号${acc.index}`
           }));
           results.push(...subdomainsWithAccount);
         }
       } catch (err) {
-        console.error(`Error for ${acc.name}:`, err);
+        console.error(`账号 ${acc.index} 子域列表加载失败:`, err);
       }
     }
 

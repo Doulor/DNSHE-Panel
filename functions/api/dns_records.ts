@@ -21,7 +21,8 @@ export async function onRequest(context: { request: Request, env: Env }) {
   const secret = env[`DNSHE_SECRET_${accountIndex}`];
 
   if (!key || !secret) {
-    return new Response(JSON.stringify({ success: false, message: '账号不存在或未配置' }), {
+    console.error(`账号 ${accountIndex} 不存在或未配置`);
+    return new Response(JSON.stringify({ success: false, message: `账号 ${accountIndex} 不存在或未配置` }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -33,16 +34,19 @@ export async function onRequest(context: { request: Request, env: Env }) {
   try {
     switch(action) {
       case 'list':
-        result = await api.listDNSRecords(subdomainId);
+        result = await api.listDnsRecords(subdomainId);
+        if (!result.success) {
+          console.error('DNS API 调用失败:', result);
+        }
         break;
       case 'create':
-        result = await api.createDNSRecord(subdomainId, type, content, name, ttl || 600, priority);
+        result = await api.createDnsRecord(subdomainId, type, content, name, ttl || 600, priority);
         break;
       case 'update':
-        result = await api.updateDNSRecord(recordId, content, ttl, priority);
+        result = await api.updateDnsRecord(recordId, content, ttl, priority);
         break;
       case 'delete':
-        result = await api.deleteDNSRecord(recordId);
+        result = await api.deleteDnsRecord(recordId);
         break;
       default:
         return new Response(JSON.stringify({ success: false, message: '未知操作' }), {
@@ -50,7 +54,8 @@ export async function onRequest(context: { request: Request, env: Env }) {
           headers: { 'Content-Type': 'application/json' }
         });
     }
-  } catch (err) {
+  } catch (err: any) {
+    console.error('DNS API 异常:', err);
     return new Response(JSON.stringify({ success: false, message: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

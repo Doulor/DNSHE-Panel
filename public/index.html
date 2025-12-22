@@ -10,9 +10,14 @@
   <!-- 登录模态框 -->
   <div id="loginModal" class="modal login-modal">
     <div class="modal-content login-content">
-      <h3>🔐 登录管理面板</h3>
+      <h3>🔐 DNS管理面板登录</h3>
       <input type="password" id="loginPassword" class="login-input" placeholder="请输入访问密码">
+      <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <input type="checkbox" id="rememberPassword" style="margin-right: 8px;">
+        <label for="rememberPassword" style="margin: 0; font-size: 14px; color: #666;">记住密码</label>
+      </div>
       <button id="loginBtn" class="login-btn">登录</button>
+      <div id="loginFeedback" style="margin-top: 10px; text-align: center; min-height: 20px; color: #e74c3c; font-size: 14px;"></div>
     </div>
   </div>
 
@@ -125,6 +130,14 @@
 </div>
 
 <script>
+// 登录验证相关元素
+const loginModal = document.getElementById('loginModal');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
+const rememberPassword = document.getElementById('rememberPassword');
+const loginFeedback = document.getElementById('loginFeedback');
+
+// 页面主要元素
 const refreshBtn = document.getElementById('refreshBtn');
 const registerBtn = document.getElementById('registerBtn');
 const tableBody = document.querySelector('#subdomainTable tbody');
@@ -141,16 +154,148 @@ const accountSelect = document.getElementById('accountSelect');
 
 let currentSubdomainId = null;
 let currentAccountIndex = null;
+let isAuthenticated = false;
 
-refreshBtn.addEventListener('click', loadSubdomains);
-registerBtn.addEventListener('click', () => {
-  loadAccountOptions();
-  modal.style.display = 'flex';
+// 检查本地存储的密码
+function checkStoredCredentials() {
+  const storedPassword = localStorage.getItem('dnsPanelPassword');
+  const storedRemember = localStorage.getItem('rememberPassword') === 'true';
+
+  if (storedRemember && storedPassword) {
+    loginPassword.value = storedPassword;
+    rememberPassword.checked = true;
+    // 自动尝试登录
+    attemptAutoLogin(storedPassword);
+  } else {
+    loginModal.style.display = 'flex';
+    loginPassword.focus();
+  }
+}
+
+// 自动登录尝试
+async function attemptAutoLogin(password) {
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      isAuthenticated = true;
+      loginModal.style.display = 'none';
+      loadSubdomains();
+    } else {
+      // 自动登录失败，显示登录框
+      loginModal.style.display = 'flex';
+      loginPassword.focus();
+    }
+  } catch (error) {
+    console.error('自动登录失败:', error);
+    // 自动登录失败，显示登录框
+    loginModal.style.display = 'flex';
+    loginPassword.focus();
+  }
+}
+
+// 登录功能
+loginBtn.addEventListener('click', async () => {
+  const password = loginPassword.value;
+  if (!password) {
+    showLoginFeedback('请输入密码', 'error');
+    loginPassword.focus();
+    return;
+  }
+
+  // 显示加载状态
+  loginBtn.textContent = '登录中...';
+  loginBtn.disabled = true;
+  showLoginFeedback('验证中...', 'info');
+
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      isAuthenticated = true;
+
+      // 如果用户选择记住密码，则存储
+      if (rememberPassword.checked) {
+        localStorage.setItem('dnsPanelPassword', password);
+        localStorage.setItem('rememberPassword', 'true');
+      } else {
+        // 否则清除存储的密码
+        localStorage.removeItem('dnsPanelPassword');
+        localStorage.removeItem('rememberPassword');
+      }
+
+      showLoginFeedback('登录成功！正在加载数据...', 'success');
+      loginModal.style.display = 'none';
+      loadSubdomains();
+    } else {
+      showLoginFeedback(result.message || '密码错误，请重试', 'error');
+      loginPassword.focus();
+      loginPassword.select();
+    }
+  } catch (error) {
+    console.error('登录错误:', error);
+    showLoginFeedback('网络错误，请重试', 'error');
+    loginPassword.focus();
+  } finally {
+    // 恢复按钮状态
+    loginBtn.textContent = '登录';
+    loginBtn.disabled = false;
+  }
 });
+
+// 显示登录反馈信息
+function showLoginFeedback(message, type) {
+  loginFeedback.textContent = message;
+  loginFeedback.style.color = type === 'error' ? '#e74c3c' :
+                             type === 'success' ? '#27ae60' :
+                             type === 'info' ? '#3498db' : '#666';
+}
+
+// 检查认证状态的函数
+function checkAuth() {
+  if (!isAuthenticated) {
+    loginModal.style.display = 'flex';
+    loginPassword.focus();
+    return false;
+  }
+  return true;
+}
+
+// 包装需要认证的函数
+function requireAuth(func) {
+  return function(...args) {
+    if (checkAuth()) {
+      return func.apply(this, args);
+    }
+  };
+}
+
+refreshBtn.addEventListener('click', requireAuth(loadSubdomains));
+registerBtn.addEventListener('click', requireAuth(() => {
+  if (checkAuth()) {
+    loadAccountOptions();
+    modal.style.display = 'flex';
+  }
+}));
 closeModal.addEventListener('click', () => modal.style.display = 'none');
 closeDNSModal.addEventListener('click', () => dnsModal.style.display = 'none');
 addDNSRecordBtn.addEventListener('click', () => addDNSModal.style.display = 'flex');
 closeAddDNSModal.addEventListener('click', () => addDNSModal.style.display = 'none');
+
+// 页面加载时检查存储的凭据
+document.addEventListener('DOMContentLoaded', function() {
+  checkStoredCredentials();
+});
 
 // 动态加载账号选项
 async function loadAccountOptions() {
@@ -396,26 +541,257 @@ async function deleteDNSRecord(recordId) {
   }
 }
 
-// 初始加载
-// 显示登录模态框，要求用户输入密码
-document.addEventListener('DOMContentLoaded', function() {
-  // 显示登录框
-  loginModal.style.display = 'flex';
-  loginPassword.focus();
+// 动态加载账号选项
+async function loadAccountOptions() {
+  try {
+    const res = await fetch('/api/subdomains');
+    const data = await res.json();
+
+    // 清空现有选项
+    accountSelect.innerHTML = '';
+
+    // 获取所有唯一账号
+    const accounts = [...new Set(data.subdomains.map(sd => sd.account))];
+
+    accounts.forEach(account => {
+      const option = document.createElement('option');
+      // 从账号名中提取数字，如"账号1"提取为"1"
+      const accountIndex = account.replace('账号', '');
+      option.value = accountIndex;
+      option.textContent = account;
+      accountSelect.appendChild(option);
+    });
+
+    // 如果没有账号，则默认添加账号1-3的选项
+    if (accounts.length === 0) {
+      for (let i = 1; i <= 3; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `账号${i}`;
+        accountSelect.appendChild(option);
+      }
+    }
+  } catch (err) {
+    console.error('加载账号选项失败:', err);
+    // 如果加载失败，提供默认选项
+    accountSelect.innerHTML = '';
+    for (let i = 1; i <= 3; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `账号${i}`;
+      accountSelect.appendChild(option);
+    }
+  }
+}
+
+async function loadSubdomains() {
+  tableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
+  try {
+    const res = await fetch('/api/subdomains');
+    const data = await res.json();
+    tableBody.innerHTML = '';
+    if (data.success && data.subdomains.length > 0) {
+      data.subdomains.forEach(sd => {
+        // 为到期时间预留位置，实际实现中需要额外API调用来获取到期时间
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${sd.full_domain}</td>
+          <td>${sd.rootdomain}</td>
+          <td class="${sd.status === 'active' ? 'status-active' : 'status-inactive'}">${sd.status}</td>
+          <td>${sd.account}</td>
+          <td>${sd.created_at}</td>
+          <td>${sd.expires_at || 'N/A'}</td>
+          <td>
+            <button onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
+            <button onclick="renewSubdomain(${sd.id}, '${sd.account.replace('账号', '')}')">🔄 续期</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    } else {
+      tableBody.innerHTML = '<tr><td colspan="6">暂无子域名</td></tr>';
+    }
+  } catch (err) {
+    tableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
+    console.error(err);
+  }
+}
+
+// 注册子域
+submitRegister.addEventListener('click', async () => {
+  const accountIndex = document.getElementById('accountSelect').value;
+  const subdomain = document.getElementById('subdomainInput').value;
+  const rootdomain = document.getElementById('rootdomainInput').value;
+  if (!subdomain || !rootdomain) {
+    alert('请填写完整信息');
+    return;
+  }
+
+  const res = await fetch(`/api/subdomains`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ accountIndex, subdomain, rootdomain })
+  });
+  const data = await res.json();
+  alert(data.success ? '✅ 注册成功' : `❌ 注册失败: ${data.message || data.error || '未知错误'}`);
+  modal.style.display = 'none';
+  document.getElementById('subdomainInput').value = '';
+  document.getElementById('rootdomainInput').value = '';
+  loadSubdomains();
 });
 
-// 添加认证API调用的函数
-async function authenticate(password) {
+// 删除子域 (已移除按钮，但保留函数以防需要)
+async function deleteSubdomain(id, accountIndex) {
+  if (!confirm('⚠️ 确定删除该子域名吗？此操作不可恢复！')) return;
+  const res = await fetch(`/api/subdomains`, {
+    method: 'DELETE',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ subdomain_id: id, accountIndex })
+  });
+  const data = await res.json();
+  alert(data.success ? '✅ 删除成功' : `❌ 删除失败: ${data.message || data.error || '未知错误'}`);
+  loadSubdomains();
+}
+
+// 续期子域
+async function renewSubdomain(id, accountIndex) {
+  const res = await fetch(`/api/subdomains/renew`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ subdomain_id: id, accountIndex })
+  });
+  const data = await res.json();
+  alert(data.success ? '✅ 续期成功' : `❌ 续期失败: ${data.message || data.error || '未知错误'}`);
+  loadSubdomains();
+}
+
+// 管理DNS记录
+async function manageDNSRecords(subdomainId, account) {
+  currentSubdomainId = subdomainId;
+  currentAccountIndex = account.replace('账号', '');
+  document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域: ${account.replace('账号', '账号')} - ${subdomainId}`;
+
+  const dnsTableBody = document.querySelector('#dnsTable tbody');
+  dnsTableBody.innerHTML = '<tr><td colspan="7">🔄 加载中...</td></tr>';
+
   try {
-    const response = await fetch('/api/auth', {
+    const res = await fetch(`/api/dns_records`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ action: 'list', accountIndex: currentAccountIndex, subdomainId })
     });
-    return await response.json();
-  } catch (error) {
-    console.error('认证请求失败:', error);
-    return { success: false, message: '网络错误' };
+    const data = await res.json();
+
+    dnsTableBody.innerHTML = '';
+    if (data.success && data.records && data.records.length > 0) {
+      data.records.forEach(record => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${record.name || '@'}</td>
+          <td>${record.type}</td>
+          <td>${record.content}</td>
+          <td>${record.ttl}</td>
+          <td>${record.priority || ''}</td>
+          <td>${record.created_at}</td>
+          <td>
+            <button onclick="editDNSRecord(${record.id})">✏️ 编辑</button>
+            <button onclick="deleteDNSRecord(${record.id})">🗑️ 删除</button>
+          </td>
+        `;
+        dnsTableBody.appendChild(tr);
+      });
+    } else {
+      dnsTableBody.innerHTML = '<tr><td colspan="7">📋 暂无DNS记录</td></tr>';
+    }
+  } catch (err) {
+    dnsTableBody.innerHTML = '<tr><td colspan="7">❌ 加载失败</td></tr>';
+    console.error('DNS记录加载失败:', err);
+  }
+
+  dnsModal.style.display = 'flex';
+}
+
+// 添加DNS记录
+submitDNSRecord.addEventListener('click', async () => {
+  const name = document.getElementById('dnsNameInput').value || null;
+  const type = document.getElementById('dnsTypeSelect').value;
+  const content = document.getElementById('dnsContentInput').value;
+  const ttl = parseInt(document.getElementById('dnsTTLInput').value) || 120;
+  const priority = parseInt(document.getElementById('dnsPriorityInput').value);
+
+  if (!content) {
+    alert('请填写记录内容');
+    return;
+  }
+  if (ttl < 60 || ttl > 86400) {
+    alert('TTL值必须在60-86400之间');
+    return;
+  }
+
+  // MX和SRV记录需要优先级
+  if ((type === 'MX' || type === 'SRV') && isNaN(priority)) {
+    alert('MX和SRV记录必须设置优先级');
+    return;
+  }
+
+  const payload = {
+    action: 'create',
+    accountIndex: currentAccountIndex,
+    subdomainId: currentSubdomainId,
+    type,
+    content,
+    name,
+    ttl
+  };
+
+  // 仅在需要时添加priority字段
+  if (!isNaN(priority) && priority >= 0) {
+    payload.priority = priority;
+  }
+
+  const res = await fetch(`/api/dns_records`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  alert(data.success ? '✅ 添加成功' : `❌ 添加失败: ${data.message || data.error || '未知错误'}`);
+
+  if (data.success) {
+    document.getElementById('dnsNameInput').value = '';
+    document.getElementById('dnsContentInput').value = '';
+    document.getElementById('dnsTTLInput').value = '120';
+    document.getElementById('dnsPriorityInput').value = '0';
+    addDNSModal.style.display = 'none';
+    // Refresh the DNS records list
+    manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
+  }
+});
+
+// 编辑DNS记录
+async function editDNSRecord(recordId) {
+  alert('✏️ 编辑功能将在后续版本中添加，目前请先删除记录再重新创建');
+}
+
+// 删除DNS记录
+async function deleteDNSRecord(recordId) {
+  if (!confirm('⚠️ 确定删除该DNS记录吗？此操作不可恢复！')) return;
+
+  const res = await fetch(`/api/dns_records`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      action: 'delete',
+      accountIndex: currentAccountIndex,
+      record_id: recordId
+    })
+  });
+  const data = await res.json();
+  alert(data.success ? '✅ 删除成功' : `❌ 删除失败: ${data.message || data.error || '未知错误'}`);
+
+  if (data.success) {
+    // Refresh the DNS records list
+    manageDNSRecords(currentSubdomainId, `账号${currentAccountIndex}`);
   }
 }
 </script>

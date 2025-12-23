@@ -356,10 +356,15 @@ td > .btn + .btn {
 
 /* 让操作列中的按钮并排显示 */
 #dnsTable td:nth-child(7) button,
-#subdomainTable td:nth-child(7) button {
-  display: inline-block;
-  margin: 0 2px;
-  vertical-align: middle;
+#subdomainTable td:nth-child(8) button {
+  display: inline-block !important;
+  margin: 0 2px !important;
+  vertical-align: middle !important;
+}
+
+/* 确保操作列中的按钮容器为内联元素 */
+#subdomainTable td:nth-child(8) {
+  white-space: nowrap !important; /* 防止换行 */
 }
 
 .modal-buttons {

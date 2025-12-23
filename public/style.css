@@ -340,24 +340,24 @@ td > .btn + .btn {
   width: 12% !important; /* 设置为表格宽度的12% */
 }
 
-/* 到期时间列 - 第7列 */
-#subdomainTable th:nth-child(7),
-#subdomainTable td:nth-child(7) {
-  width: 12% !important; /* 设置为表格宽度的12% */
+/* 到期时间列 - 第8列 (由于新增了DNS记录列，现在是第8列) */
+#subdomainTable th:nth-child(8),
+#subdomainTable td:nth-child(8) {
+  width: 14% !important; /* 增加到期时间列宽度 */
 }
 
 /* DNS记录状态列 - 第5列 */
 #subdomainTable th:nth-child(5),
 #subdomainTable td:nth-child(5) {
-  width: 10% !important; /* DNS记录状态列宽度 */
+  width: 8% !important; /* 降低DNS记录状态列宽度 */
   text-align: center !important; /* 居中对齐 */
 }
 
 /* 操作列 - 第9列，需要足够宽以容纳两个按钮 */
 #subdomainTable th:nth-child(9),
 #subdomainTable td:nth-child(9) {
-  width: 20% !important; /* 增加表格宽度比例到20% */
-  min-width: 250px !important; /* 增加最小宽度到250px以容纳两个按钮 */
+  width: 18% !important; /* 降低操作列宽度 */
+  min-width: 220px !important; /* 降低最小宽度 */
   text-align: center !important; /* 确保内容居中 */
 }
 

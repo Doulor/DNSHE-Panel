@@ -29,7 +29,8 @@ export class DNSHESubdomainAPI {
       headers: {
         'X-API-Key': this.apiKey,
         'X-API-Secret': this.apiSecret,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'DNSHE-Panel/1.0'  // 添加用户代理以符合API维护后的要求
       }
     };
 
@@ -37,8 +38,29 @@ export class DNSHESubdomainAPI {
       options.body = JSON.stringify(data);
     }
 
-    const res = await fetch(url, options);
-    return res.json();
+    try {
+      const res = await fetch(url, options);
+
+      // 检查HTTP状态码
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`API请求失败: HTTP ${res.status} - ${res.statusText}`, errorText);
+        throw new Error(`API请求失败: HTTP ${res.status} - ${res.statusText}`);
+      }
+
+      const result = await res.json();
+
+      // 检查API返回的错误
+      if (result.error) {
+        console.error(`API返回错误:`, result.error);
+        throw new Error(`API错误: ${result.error}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error(`请求 ${url} 时发生错误:`, error);
+      throw error;
+    }
   }
 
   listSubdomains() {

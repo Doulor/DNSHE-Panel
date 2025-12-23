@@ -50,14 +50,22 @@ export async function onRequest(context: { request: Request, env: Env }) {
       );
 
       try {
+        console.log(`正在获取账号 ${acc.index} 的子域名列表...`);
         const data = await api.listSubdomains();
-        if (data.success) {
+        console.log(`账号 ${acc.index} API响应:`, data);
+
+        if (data && data.success && data.subdomains) {
+          console.log(`账号 ${acc.index} 成功获取到 ${data.subdomains.length} 个子域名`);
           const subdomainsWithAccount = data.subdomains.map((sd: any) => ({
             ...sd,
             accountIndex: acc.index,
             account: getAccountAlias(acc.index, env) // 使用别名或默认名称
           }));
           results.push(...subdomainsWithAccount);
+        } else if (data && data.error) {
+          console.error(`账号 ${acc.index} API返回错误:`, data.error);
+        } else {
+          console.warn(`账号 ${acc.index} 返回数据格式异常:`, data);
         }
       } catch (err) {
         console.error(`账号 ${acc.index} 子域列表加载失败:`, err);

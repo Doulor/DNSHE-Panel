@@ -39,6 +39,7 @@
   <table id="subdomainTable">
     <thead>
       <tr>
+        <th>🔢 序号</th>
         <th>🌐 子域名</th>
         <th>🏠 根域</th>
         <th>✅ 状态</th>
@@ -875,16 +876,18 @@ async function loadAccountOptions() {
 }
 
 async function loadSubdomains() {
-  tableBody.innerHTML = '<tr><td colspan="6">加载中...</td></tr>';
+  tableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
   try {
     const res = await fetch('/api/subdomains');
     const data = await res.json();
     tableBody.innerHTML = '';
     if (data.success && data.subdomains.length > 0) {
-      data.subdomains.forEach(sd => {
+      data.subdomains.forEach((sd, index) => {
         // 为到期时间预留位置，实际实现中需要额外API调用来获取到期时间
         const tr = document.createElement('tr');
+        const serialNumber = index + 1; // 序号从1开始
         tr.innerHTML = `
+          <td>${serialNumber}</td>
           <td>${sd.full_domain}</td>
           <td>${sd.rootdomain}</td>
           <td class="${sd.status === 'active' ? 'status-active' : 'status-inactive'}">${sd.status}</td>
@@ -899,10 +902,10 @@ async function loadSubdomains() {
         tableBody.appendChild(tr);
       });
     } else {
-      tableBody.innerHTML = '<tr><td colspan="6">暂无子域名</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="7">暂无子域名</td></tr>';
     }
   } catch (err) {
-    tableBody.innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
     console.error(err);
   }
 }

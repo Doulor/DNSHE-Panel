@@ -883,10 +883,29 @@ async function loadSubdomains() {
     const data = await res.json();
     tableBody.innerHTML = '';
     if (data.success && data.subdomains.length > 0) {
-      // 首先显示所有子域名，但DNS记录状态为"加载中"
-      const promises = data.subdomains.map(async (sd, index) => {
+      // 先显示所有子域名，DNS记录状态显示为"加载中"
+      data.subdomains.forEach((sd, index) => {
         const serialNumber = index + 1; // 序号从1开始
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${serialNumber}</td>
+          <td>${sd.full_domain}</td>
+          <td>${sd.rootdomain}</td>
+          <td class="${sd.status === 'active' ? 'status-active' : 'status-inactive'}">${sd.status}</td>
+          <td>⏳ 加载中...</td>  <!-- 先显示加载中 -->
+          <td>${sd.account}</td>
+          <td>${sd.created_at}</td>
+          <td>${sd.expires_at || 'N/A'}</td>
+          <td>
+            <button class="modal-btn add-btn" onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
+            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, getAccountIndexFromAlias('${sd.account}'))">🔄 续期</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
 
+      // 然后异步更新DNS记录状态，不阻塞主列表显示
+      data.subdomains.forEach(async (sd, index) => {
         // 获取DNS记录数量
         let dnsRecordCount = 0;
         try {
@@ -907,36 +926,16 @@ async function loadSubdomains() {
           console.error(`获取子域名 ${sd.full_domain} 的DNS记录失败:`, dnsErr);
         }
 
-        return {
-          sd,
-          serialNumber,
-          dnsRecordCount
-        };
-      });
-
-      // 等待所有DNS记录获取完成
-      const results = await Promise.all(promises);
-
-      // 然后一次性更新表格
-      results.forEach(({ sd, serialNumber, dnsRecordCount }) => {
         const dnsStatus = dnsRecordCount > 0 ? `✅ ${dnsRecordCount}条记录` : '❌ 无记录';
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${serialNumber}</td>
-          <td>${sd.full_domain}</td>
-          <td>${sd.rootdomain}</td>
-          <td class="${sd.status === 'active' ? 'status-active' : 'status-inactive'}">${sd.status}</td>
-          <td>${dnsStatus}</td>
-          <td>${sd.account}</td>
-          <td>${sd.created_at}</td>
-          <td>${sd.expires_at || 'N/A'}</td>
-          <td>
-            <button class="modal-btn add-btn" onclick="manageDNSRecords(${sd.id}, '${sd.account}')">📋 管理DNS</button>
-            <button class="modal-btn cancel-btn" onclick="renewSubdomain(${sd.id}, getAccountIndexFromAlias('${sd.account}'))">🔄 续期</button>
-          </td>
-        `;
-        tableBody.appendChild(tr);
+        // 更新对应行的DNS记录状态
+        const rows = tableBody.querySelectorAll('tr');
+        if (rows[index]) {
+          const dnsCell = rows[index].querySelector('td:nth-child(5)'); // 第5列是DNS记录状态列
+          if (dnsCell) {
+            dnsCell.textContent = dnsStatus;
+          }
+        }
       });
     } else {
       tableBody.innerHTML = '<tr><td colspan="8">暂无子域名</td></tr>';

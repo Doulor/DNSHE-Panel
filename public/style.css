@@ -349,8 +349,8 @@ td > .btn + .btn {
 /* 操作列 - 第8列，需要足够宽以容纳两个按钮 */
 #subdomainTable th:nth-child(8),
 #subdomainTable td:nth-child(8) {
-  width: 15% !important; /* 设置为表格宽度的15%，确保按钮可以并排显示 */
-  min-width: 180px !important; /* 最小宽度确保按钮可以并排 */
+  width: 20% !important; /* 增加表格宽度比例到20% */
+  min-width: 250px !important; /* 增加最小宽度到250px以容纳两个按钮 */
   text-align: center !important; /* 确保内容居中 */
 }
 

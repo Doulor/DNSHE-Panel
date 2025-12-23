@@ -10,7 +10,8 @@ export class DNSHESubdomainAPI {
   }
 
   async request(endpoint: string, action: string, method: string = 'GET', data: any = null) {
-    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}`;
+    // API维护后可能需要在URL中包含认证信息
+    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}&api_key=${this.apiKey}&api_secret=${this.apiSecret}`;
     if (method === 'GET' && data) {
       // 添加GET请求的参数
       const params = new URLSearchParams();
@@ -27,8 +28,6 @@ export class DNSHESubdomainAPI {
     const options: RequestInit = {
       method,
       headers: {
-        'X-API-Key': this.apiKey,
-        'X-API-Secret': this.apiSecret,
         'Content-Type': 'application/json',
         'User-Agent': 'DNSHE-Panel/1.0'  // 添加用户代理以符合API维护后的要求
       }

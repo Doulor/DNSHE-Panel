@@ -883,10 +883,9 @@ async function loadSubdomains() {
     const data = await res.json();
     tableBody.innerHTML = '';
     if (data.success && data.subdomains.length > 0) {
-      // 为每个子域名获取DNS记录状态
-      for (let i = 0; i < data.subdomains.length; i++) {
-        const sd = data.subdomains[i];
-        const serialNumber = i + 1; // 序号从1开始
+      // 首先显示所有子域名，但DNS记录状态为"加载中"
+      const promises = data.subdomains.map(async (sd, index) => {
+        const serialNumber = index + 1; // 序号从1开始
 
         // 获取DNS记录数量
         let dnsRecordCount = 0;
@@ -908,6 +907,18 @@ async function loadSubdomains() {
           console.error(`获取子域名 ${sd.full_domain} 的DNS记录失败:`, dnsErr);
         }
 
+        return {
+          sd,
+          serialNumber,
+          dnsRecordCount
+        };
+      });
+
+      // 等待所有DNS记录获取完成
+      const results = await Promise.all(promises);
+
+      // 然后一次性更新表格
+      results.forEach(({ sd, serialNumber, dnsRecordCount }) => {
         const dnsStatus = dnsRecordCount > 0 ? `✅ ${dnsRecordCount}条记录` : '❌ 无记录';
 
         const tr = document.createElement('tr');
@@ -926,7 +937,7 @@ async function loadSubdomains() {
           </td>
         `;
         tableBody.appendChild(tr);
-      }
+      });
     } else {
       tableBody.innerHTML = '<tr><td colspan="8">暂无子域名</td></tr>';
     }

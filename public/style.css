@@ -297,12 +297,61 @@ td > .btn + .btn {
   text-align: center; /* 确保内容居中 */
 }
 
-/* 增加主页面操作列的宽度 */
-#subdomainTable td:nth-child(7),
-#subdomainTable th:nth-child(7) {
-  width: 220px; /* 增加操作列的固定宽度 */
-  min-width: 220px;
-  text-align: center; /* 确保内容居中 */
+/* 表格使用固定布局 */
+#subdomainTable {
+  table-layout: fixed !important;
+}
+
+/* 序号列宽度控制 - 第1列 */
+#subdomainTable th:nth-child(1),
+#subdomainTable td:nth-child(1) {
+  width: 50px !important; /* 序号列固定较小宽度 */
+  text-align: center !important; /* 居中对齐 */
+  max-width: 50px !important;
+}
+
+/* 子域名列 - 第2列 */
+#subdomainTable th:nth-child(2),
+#subdomainTable td:nth-child(2) {
+  width: 20% !important; /* 设置为表格宽度的20% */
+}
+
+/* 根域列 - 第3列 */
+#subdomainTable th:nth-child(3),
+#subdomainTable td:nth-child(3) {
+  width: 15% !important; /* 设置为表格宽度的15% */
+}
+
+/* 状态列 - 第4列 */
+#subdomainTable th:nth-child(4),
+#subdomainTable td:nth-child(4) {
+  width: 8% !important; /* 设置为表格宽度的8% */
+}
+
+/* 所属账号列 - 第5列 */
+#subdomainTable th:nth-child(5),
+#subdomainTable td:nth-child(5) {
+  width: 10% !important; /* 设置为表格宽度的10% */
+}
+
+/* 创建时间列 - 第6列 */
+#subdomainTable th:nth-child(6),
+#subdomainTable td:nth-child(6) {
+  width: 12% !important; /* 设置为表格宽度的12% */
+}
+
+/* 到期时间列 - 第7列 */
+#subdomainTable th:nth-child(7),
+#subdomainTable td:nth-child(7) {
+  width: 12% !important; /* 设置为表格宽度的12% */
+}
+
+/* 操作列 - 第8列，需要足够宽以容纳两个按钮 */
+#subdomainTable th:nth-child(8),
+#subdomainTable td:nth-child(8) {
+  width: 15% !important; /* 设置为表格宽度的15%，确保按钮可以并排显示 */
+  min-width: 180px !important; /* 最小宽度确保按钮可以并排 */
+  text-align: center !important; /* 确保内容居中 */
 }
 
 /* 让操作列中的按钮并排显示 */

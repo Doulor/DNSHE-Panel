@@ -43,6 +43,7 @@
         <th>🌐 子域名</th>
         <th>🏠 根域</th>
         <th>✅ 状态</th>
+        <th>📋 DNS记录</th>
         <th>👤 所属账号</th>
         <th>📅 创建时间</th>
         <th>⏰ 到期时间</th>
@@ -876,21 +877,46 @@ async function loadAccountOptions() {
 }
 
 async function loadSubdomains() {
-  tableBody.innerHTML = '<tr><td colspan="7">加载中...</td></tr>';
+  tableBody.innerHTML = '<tr><td colspan="8">加载中...</td></tr>';
   try {
     const res = await fetch('/api/subdomains');
     const data = await res.json();
     tableBody.innerHTML = '';
     if (data.success && data.subdomains.length > 0) {
-      data.subdomains.forEach((sd, index) => {
-        // 为到期时间预留位置，实际实现中需要额外API调用来获取到期时间
+      // 为每个子域名获取DNS记录状态
+      for (let i = 0; i < data.subdomains.length; i++) {
+        const sd = data.subdomains[i];
+        const serialNumber = i + 1; // 序号从1开始
+
+        // 获取DNS记录数量
+        let dnsRecordCount = 0;
+        try {
+          const dnsRes = await fetch(`/api/dns_records`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              action: 'list',
+              accountIndex: getAccountIndexFromAlias(sd.account),
+              subdomainId: sd.id
+            })
+          });
+          const dnsData = await dnsRes.json();
+          if (dnsData.success && dnsData.records) {
+            dnsRecordCount = dnsData.records.length;
+          }
+        } catch (dnsErr) {
+          console.error(`获取子域名 ${sd.full_domain} 的DNS记录失败:`, dnsErr);
+        }
+
+        const dnsStatus = dnsRecordCount > 0 ? `✅ ${dnsRecordCount}条记录` : '❌ 无记录';
+
         const tr = document.createElement('tr');
-        const serialNumber = index + 1; // 序号从1开始
         tr.innerHTML = `
           <td>${serialNumber}</td>
           <td>${sd.full_domain}</td>
           <td>${sd.rootdomain}</td>
           <td class="${sd.status === 'active' ? 'status-active' : 'status-inactive'}">${sd.status}</td>
+          <td>${dnsStatus}</td>
           <td>${sd.account}</td>
           <td>${sd.created_at}</td>
           <td>${sd.expires_at || 'N/A'}</td>
@@ -900,12 +926,12 @@ async function loadSubdomains() {
           </td>
         `;
         tableBody.appendChild(tr);
-      });
+      }
     } else {
-      tableBody.innerHTML = '<tr><td colspan="7">暂无子域名</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8">暂无子域名</td></tr>';
     }
   } catch (err) {
-    tableBody.innerHTML = '<tr><td colspan="7">加载失败</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="8">加载失败</td></tr>';
     console.error(err);
   }
 }

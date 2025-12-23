@@ -346,9 +346,16 @@ td > .btn + .btn {
   width: 12% !important; /* 设置为表格宽度的12% */
 }
 
-/* 操作列 - 第8列，需要足够宽以容纳两个按钮 */
-#subdomainTable th:nth-child(8),
-#subdomainTable td:nth-child(8) {
+/* DNS记录状态列 - 第5列 */
+#subdomainTable th:nth-child(5),
+#subdomainTable td:nth-child(5) {
+  width: 10% !important; /* DNS记录状态列宽度 */
+  text-align: center !important; /* 居中对齐 */
+}
+
+/* 操作列 - 第9列，需要足够宽以容纳两个按钮 */
+#subdomainTable th:nth-child(9),
+#subdomainTable td:nth-child(9) {
   width: 20% !important; /* 增加表格宽度比例到20% */
   min-width: 250px !important; /* 增加最小宽度到250px以容纳两个按钮 */
   text-align: center !important; /* 确保内容居中 */
@@ -356,14 +363,14 @@ td > .btn + .btn {
 
 /* 让操作列中的按钮并排显示 */
 #dnsTable td:nth-child(7) button,
-#subdomainTable td:nth-child(8) button {
+#subdomainTable td:nth-child(9) button {
   display: inline-block !important;
   margin: 0 2px !important;
   vertical-align: middle !important;
 }
 
 /* 确保操作列中的按钮容器为内联元素 */
-#subdomainTable td:nth-child(8) {
+#subdomainTable td:nth-child(9) {
   white-space: nowrap !important; /* 防止换行 */
 }
 

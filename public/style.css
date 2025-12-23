@@ -298,11 +298,23 @@ td > .btn + .btn {
 }
 
 /* 增加主页面操作列的宽度 */
-#subdomainTable td:nth-child(7),
-#subdomainTable th:nth-child(7) {
+#subdomainTable td:nth-child(8),
+#subdomainTable th:nth-child(8) {
   width: 220px; /* 增加操作列的固定宽度 */
   min-width: 220px;
   text-align: center; /* 确保内容居中 */
+}
+
+/* 序号列宽度控制 */
+#subdomainTable td:nth-child(1),
+#subdomainTable th:nth-child(1) {
+  width: 60px; /* 序号列固定宽度 */
+  text-align: center; /* 居中对齐 */
+}
+
+/* 表格使用固定布局 */
+#subdomainTable {
+  table-layout: fixed;
 }
 
 /* 让操作列中的按钮并排显示 */

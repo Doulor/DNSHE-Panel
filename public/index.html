@@ -620,29 +620,31 @@ async function manageDNSRecords(subdomainId, account) {
   currentSubdomainId = subdomainId;
   currentAccountIndex = getAccountIndexFromAlias(account);
 
-  // 首先获取子域名的详细信息以获取完整域名
-  try {
-    const res = await fetch(`/api/subdomains`);
-    const data = await res.json();
-
-    if (data.success && data.subdomains) {
-      const subdomain = data.subdomains.find(sd => sd.id == subdomainId);
-      if (subdomain && subdomain.full_domain) {
-        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - ${subdomain.full_domain}`;
-      } else {
-        document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-      }
-    } else {
-      document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-    }
-  } catch (err) {
-    console.error('获取子域名信息失败:', err);
-    document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
-  }
+  // 立即显示模态框和加载状态，不等待子域名信息获取
+  document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - 子域ID: ${subdomainId}`;
+  dnsModal.style.display = 'flex';
 
   const dnsTableBody = document.querySelector('#dnsTable tbody');
   dnsTableBody.innerHTML = '<tr><td colspan="7">🔄 加载中...</td></tr>';
 
+  // 异步更新标题，不阻塞界面显示
+  (async () => {
+    try {
+      const res = await fetch(`/api/subdomains`);
+      const data = await res.json();
+
+      if (data.success && data.subdomains) {
+        const subdomain = data.subdomains.find(sd => sd.id == subdomainId);
+        if (subdomain && subdomain.full_domain) {
+          document.getElementById('dnsModalTitle').textContent = `📋 DNS记录管理 - ${subdomain.full_domain}`;
+        }
+      }
+    } catch (err) {
+      console.error('获取子域名信息失败:', err);
+    }
+  })();
+
+  // 加载DNS记录
   try {
     const res = await fetch(`/api/dns_records`, {
       method: 'POST',
@@ -676,8 +678,6 @@ async function manageDNSRecords(subdomainId, account) {
     dnsTableBody.innerHTML = '<tr><td colspan="7">❌ 加载失败</td></tr>';
     console.error('DNS记录加载失败:', err);
   }
-
-  dnsModal.style.display = 'flex';
 }
 
 // 添加DNS记录

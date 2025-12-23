@@ -319,7 +319,7 @@ td > .btn + .btn {
 /* 根域列 - 第3列 */
 #subdomainTable th:nth-child(3),
 #subdomainTable td:nth-child(3) {
-  width: 15% !important; /* 设置为表格宽度的15% */
+  width: 10% !important; /* 降低根域列宽度 */
 }
 
 /* 状态列 - 第4列 */
@@ -343,7 +343,7 @@ td > .btn + .btn {
 /* 到期时间列 - 第8列 (由于新增了DNS记录列，现在是第8列) */
 #subdomainTable th:nth-child(8),
 #subdomainTable td:nth-child(8) {
-  width: 14% !important; /* 增加到期时间列宽度 */
+  width: 10% !important; /* 降低到期时间列宽度 */
 }
 
 /* DNS记录状态列 - 第5列 */

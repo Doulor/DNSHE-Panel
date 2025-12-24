@@ -625,6 +625,11 @@ td > .btn + .btn {
   justify-content: center;
 }
 
+/* 维护提示样式 */
+.maintenance-notice {
+  margin-bottom: 15px;
+}
+
 .add-btn {
   background: #2ecc71;
   color: white;

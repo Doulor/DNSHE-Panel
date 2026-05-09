@@ -67,7 +67,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
         } else {
           console.warn(`账号 ${acc.index} 返回数据格式异常:`, data);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error(`账号 ${acc.index} 子域列表加载失败:`, err);
       }
     }
@@ -81,7 +81,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
     const body = await request.json();
 
     // Determine which account to use
-    const accountIndex = body.accountIndex || '1';
+      const accountIndex = body.accountIndex || '1'; // Default accountIndex to '1'
     const key = env[`DNSHE_KEY_${accountIndex}`];
     const secret = env[`DNSHE_SECRET_${accountIndex}`];
 
@@ -93,9 +93,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
     }
 
     const api = new DNSHESubdomainAPI(
-      'https://api005.dnshe.com/index.php',
-      key,
-      secret
+        'https://api005.dnshe.com/index.php', key, secret
     );
 
     try {
@@ -103,7 +101,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' }
       });
-    } catch (err) {
+    } catch (err: any) {
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 500
@@ -137,7 +135,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' }
       });
-    } catch (err) {
+    } catch (err: any) {
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 500
@@ -171,7 +169,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' }
       });
-    } catch (err) {
+    } catch (err: any) {
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         headers: { 'Content-Type': 'application/json' },
         status: 500

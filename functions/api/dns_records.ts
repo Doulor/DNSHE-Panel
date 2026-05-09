@@ -32,9 +32,10 @@ export async function onRequest(context: { request: Request, env: Env }) {
     recordId = url.searchParams.get('recordId');
   }
 
-  // Determine which account to use
-  const key = env[`DNSHE_KEY_${accountIndex}`];
-  const secret = env[`DNSHE_SECRET_${accountIndex}`];
+  // Determine which account to use (default to '1' when missing)
+  const acctIdx = accountIndex || '1';
+  const key = env[`DNSHE_KEY_${acctIdx}`];
+  const secret = env[`DNSHE_SECRET_${acctIdx}`];
 
   if (!key || !secret) {
     console.error(`账号 ${accountIndex} 不存在或未配置`);
@@ -53,7 +54,7 @@ export async function onRequest(context: { request: Request, env: Env }) {
         console.log(`调用 listDnsRecords API，subdomainId: ${subdomainId}`);
         result = await api.listDnsRecords(subdomainId);
         console.log('listDnsRecords 结果:', result);
-        if (!result.success) {
+        if (!result || result.success === false) {
           console.error('DNS API 调用失败:', result);
         }
         break;

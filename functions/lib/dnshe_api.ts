@@ -10,8 +10,8 @@ export class DNSHESubdomainAPI {
   }
 
   async request(endpoint: string, action: string, method: string = 'GET', data: any = null) {
-    // API维护后可能需要在URL中包含认证信息
-    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}&api_key=${this.apiKey}&api_secret=${this.apiSecret}`;
+    // New API requires authentication via request headers (X-API-Key / X-API-Secret)
+    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}`;
     if (method === 'GET' && data) {
       // 添加GET请求的参数
       const params = new URLSearchParams();
@@ -29,11 +29,14 @@ export class DNSHESubdomainAPI {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'DNSHE-Panel/1.0'  // 添加用户代理以符合API维护后的要求
+        'User-Agent': 'DNSHE-Panel/1.0',  // 添加用户代理以符合API维护后的要求
+        'X-API-Key': this.apiKey,
+        'X-API-Secret': this.apiSecret
       }
     };
 
-    if (method === 'POST' && data) {
+    // For non-GET methods attach JSON body when provided
+    if (method !== 'GET' && data) {
       options.body = JSON.stringify(data);
     }
 
@@ -41,18 +44,32 @@ export class DNSHESubdomainAPI {
       const res = await fetch(url, options);
 
       // 检查HTTP状态码
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`API请求失败: HTTP ${res.status} - ${res.statusText}`, errorText);
-        throw new Error(`API请求失败: HTTP ${res.status} - ${res.statusText}`);
+      const text = await res.text();
+      let result: any = null;
+      try {
+        result = text ? JSON.parse(text) : null;
+      } catch (e) {
+        console.error('无法解析API响应为JSON:', text);
+        throw new Error(`API返回不可解析的响应: HTTP ${res.status}`);
       }
 
-      const result = await res.json();
+      if (!res.ok) {
+        console.error(`API请求失败: HTTP ${res.status} - ${res.statusText}`, result || text);
+        const msg = (result && (result.message || result.error)) || res.statusText;
+        throw new Error(`API请求失败: HTTP ${res.status} - ${msg}`);
+      }
 
-      // 检查API返回的错误
-      if (result.error) {
-        console.error(`API返回错误:`, result.error);
-        throw new Error(`API错误: ${result.error}`);
+      // 统一V2.0接口返回: { success: boolean, ... }
+      if (result && result.success === false) {
+        const errMsg = result.message || result.error || JSON.stringify(result);
+        console.error('API返回失败:', result);
+        throw new Error(errMsg);
+      }
+
+      // 保留向后兼容：如果存在error字段，也视为失败
+      if (result && result.error) {
+        console.error('API返回错误字段:', result.error);
+        throw new Error(result.error);
       }
 
       return result;

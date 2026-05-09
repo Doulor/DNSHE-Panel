@@ -9,9 +9,13 @@ export class DNSHESubdomainAPI {
     this.apiSecret = apiSecret;
   }
 
-  async request(endpoint: string, action: string, method: string = 'GET', data: any = null) {
+  async request(endpoint: string, action?: string, method: string = 'GET', data: any = null) {
     // New API requires authentication via request headers (X-API-Key / X-API-Secret)
-    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}&action=${action}`;
+    // action is optional for endpoints like `quota` or `whois` which don't require an action param
+    let url = `${this.baseUrl}?m=domain_hub&endpoint=${endpoint}`;
+    if (action) {
+      url += `&action=${action}`;
+    }
     if (method === 'GET' && data) {
       // 添加GET请求的参数
       const params = new URLSearchParams();
@@ -117,5 +121,33 @@ export class DNSHESubdomainAPI {
 
   deleteDnsRecord(record_id: number) {
     return this.request('dns_records', 'delete', 'POST', { record_id });
+  }
+
+  // API Key management
+  listKeys() {
+    return this.request('keys', 'list', 'GET');
+  }
+
+  createKey(key_name: string, ip_whitelist?: string) {
+    const data: any = { key_name };
+    if (ip_whitelist !== undefined) data.ip_whitelist = ip_whitelist;
+    return this.request('keys', 'create', 'POST', data);
+  }
+
+  deleteKey(key_id: number) {
+    return this.request('keys', 'delete', 'POST', { key_id });
+  }
+
+  regenerateKey(key_id: number) {
+    return this.request('keys', 'regenerate', 'POST', { key_id });
+  }
+
+  // Quota and WHOIS
+  getQuota() {
+    return this.request('quota', undefined, 'GET');
+  }
+
+  whois(domain: string) {
+    return this.request('whois', undefined, 'GET', { domain });
   }
 }

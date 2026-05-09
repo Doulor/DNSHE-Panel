@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DNSHE 工具：API Key 管理与工具</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>🔧 DNSHE 工具</h1>
+  <div class="tool-grid">
+    <div class="card">
+      <h3>🔑 API Key 管理</h3>
+      <div>
+        <button id="refreshKeys" class="btn">刷新</button>
+        <button id="createKeyBtn" class="btn btn-success">➕ 创建 API Key</button>
+      </div>
+      <table id="keysTable">
+        <thead><tr><th>ID</th><th>名称</th><th>API Key</th><th>状态</th><th>请求数</th><th>最后使用</th><th>操作</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>📊 配额查询</h3>
+      <div id="quotaBlock">点击下方按钮获取配额信息</div>
+      <button id="getQuotaBtn" class="btn">获取配额</button>
+    </div>
+
+    <div class="card">
+      <h3>🔍 WHOIS 查询</h3>
+      <input id="whoisDomain" placeholder="例如: foo.example.com">
+      <button id="whoisBtn" class="btn">查询 WHOIS</button>
+      <pre id="whoisResult"></pre>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <a href="/">返回主页面</a>
+  </div>
+</div>
+<script src="tools.js"></script>
+</body>
+</html>

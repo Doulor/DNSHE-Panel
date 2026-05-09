@@ -33,6 +33,26 @@ body {
   margin: 0 auto;
 }
 
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,255,0.9));
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(20,30,60,0.06);
+  border: 1px solid rgba(67,97,238,0.06);
+}
+
+.card h3 {
+  margin-bottom: 12px;
+  color: var(--secondary-color);
+}
+
 h1 {
   color: var(--secondary-color);
   text-align: center;
@@ -202,9 +222,9 @@ tr:nth-child(even) {
 }
 
 tr:hover {
-  background: var(--hover-bg);
-  transform: scale(1.01);
-  transition: all 0.2s ease;
+  background: linear-gradient(90deg, rgba(67,97,238,0.03), rgba(67,97,238,0.02));
+  transform: translateY(-2px);
+  transition: all 0.18s ease;
 }
 
 .status-active {
@@ -243,6 +263,14 @@ tr:hover {
   animation: modalAppear 0.3s ease-out;
 }
 
+.modal .help-text {
+  margin-top: 12px;
+  background: #fbfcff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(67,97,238,0.04);
+}
+
 @keyframes modalAppear {
   from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }
@@ -269,6 +297,17 @@ tr:hover {
   width: auto;
   padding: 10px 20px;
   margin: 0 5px;
+}
+
+.input-inline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.small-note {
+  color: var(--text-light);
+  font-size: 13px;
 }
 
 .btn-spacing {
@@ -398,6 +437,16 @@ td > .btn + .btn {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 800px) {
+  body { padding: 12px; }
+  .modal-content { padding: 18px; }
+  h1 { font-size: 1.6rem; }
+  .header-actions { gap: 8px; }
+  .btn { padding: 10px 14px; font-size: 14px; }
+  table { font-size: 13px; }
 }
 
 .help-text {

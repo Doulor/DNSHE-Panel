@@ -37,6 +37,7 @@
       <span>➕</span> 注册新子域
     </button>
     <a href="/keys.html" class="btn" style="margin-left:8px;">🔧 工具</a>
+    <button id="logoutBtn" class="btn" style="margin-left:8px; display:none;">🚪 退出</button>
   </div>
 
   <table id="subdomainTable">
@@ -284,6 +285,7 @@ const loginPassword = document.getElementById('loginPassword');
 const loginBtn = document.getElementById('loginBtn');
 const rememberPassword = document.getElementById('rememberPassword');
 const loginFeedback = document.getElementById('loginFeedback');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // 页面主要元素
 const refreshBtn = document.getElementById('refreshBtn');
@@ -340,47 +342,51 @@ let currentSubdomainId = null;
 let currentAccountIndex = null;
 let isAuthenticated = false;
 
-// 检查本地存储的密码
-function checkStoredCredentials() {
-  const storedPassword = localStorage.getItem('dnsPanelPassword');
-  const storedRemember = localStorage.getItem('rememberPassword') === 'true';
-
-  if (storedRemember && storedPassword) {
-    loginPassword.value = storedPassword;
-    rememberPassword.checked = true;
-    // 自动尝试登录
-    attemptAutoLogin(storedPassword);
-  } else {
-    loginModal.style.display = 'flex';
-    loginPassword.focus();
-  }
-}
-
-// 自动登录尝试
-async function attemptAutoLogin(password) {
+// 检查会话状态（凭据存于 HttpOnly Cookie，前端不可读）
+async function checkStoredCredentials() {
   try {
-    const response = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
-    });
+    const response = await fetch('/api/auth');
     const result = await response.json();
-
-    if (result.success) {
+    if (result.authenticated) {
       isAuthenticated = true;
+      logoutBtn.style.display = '';
       loginModal.style.display = 'none';
       loadSubdomains();
-    } else {
-      // 自动登录失败，显示登录框
-      loginModal.style.display = 'flex';
-      loginPassword.focus();
+      return;
     }
   } catch (error) {
-    console.error('自动登录失败:', error);
-    // 自动登录失败，显示登录框
-    loginModal.style.display = 'flex';
-    loginPassword.focus();
+    console.error('会话检查失败:', error);
   }
+  showLoginPrompt();
+}
+
+// 显示登录框
+function showLoginPrompt(message) {
+  isAuthenticated = false;
+  logoutBtn.style.display = 'none';
+  loginModal.style.display = 'flex';
+  if (message) showLoginFeedback(message, 'error');
+  loginPassword.focus();
+}
+
+// 会话失效（任意 API 返回 401）时统一处理
+function handleSessionExpired() {
+  if (!isAuthenticated) return;
+  showLoginPrompt('登录状态已过期，请重新登录');
+}
+
+// 登出：清除服务端会话
+async function logout() {
+  try {
+    await fetch('/api/auth', { method: 'DELETE' });
+  } catch (error) {
+    console.error('登出失败:', error);
+  }
+  localStorage.removeItem('dnsPanelPassword');
+  localStorage.removeItem('rememberPassword');
+  rememberPassword.checked = false;
+  loginPassword.value = '';
+  showLoginPrompt();
 }
 
 // 登录功能
@@ -401,24 +407,24 @@ loginBtn.addEventListener('click', async () => {
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
+      body: JSON.stringify({ password, remember: rememberPassword.checked })
     });
     const result = await response.json();
 
     if (result.success) {
       isAuthenticated = true;
 
-      // 如果用户选择记住密码，则存储
+      // 会话由 HttpOnly Cookie 承载；仅在用户选择时才本地勾选状态，不存明文密码
       if (rememberPassword.checked) {
-        localStorage.setItem('dnsPanelPassword', password);
         localStorage.setItem('rememberPassword', 'true');
       } else {
-        // 否则清除存储的密码
         localStorage.removeItem('dnsPanelPassword');
         localStorage.removeItem('rememberPassword');
       }
 
+      loginPassword.value = '';
       showLoginFeedback('登录成功！正在加载数据...', 'success');
+      logoutBtn.style.display = '';
       loginModal.style.display = 'none';
       loadSubdomains();
     } else {
@@ -436,6 +442,8 @@ loginBtn.addEventListener('click', async () => {
     loginBtn.disabled = false;
   }
 });
+
+logoutBtn.addEventListener('click', logout);
 
 // 显示登录反馈信息
 function showLoginFeedback(message, type) {
@@ -1377,6 +1385,26 @@ async function updateDNSRecord() {
     alert(`❌ 更新DNS记录时发生错误: ${err.message}`);
   }
 }
+</script>
+<script>
+// 全局会话处理：任何 API 返回 401 即视为会话过期/未认证
+const _originalFetch = window.fetch.bind(window);
+window.fetch = async function(...args) {
+  const response = await _originalFetch(...args);
+  if (response.status === 401) {
+    try {
+      handleSessionExpired();
+    } catch (e) {
+      console.error('会话过期处理失败:', e);
+    }
+  }
+  return response;
+};
+
+// 回车快捷登录
+loginPassword.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') loginBtn.click();
+});
 </script>
 </body>
 </html>

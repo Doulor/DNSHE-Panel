@@ -2,6 +2,9 @@
 async function fetchJson(path, opts) {
   const res = await fetch(path, opts);
   const text = await res.text();
+  if (res.status === 401) {
+    return { success: false, error: '未认证或会话已过期，请返回主页面登录后重试' };
+  }
   try { return JSON.parse(text); } catch (e) { return { success: false, raw: text }; }
 }
 

@@ -56,6 +56,9 @@ wrangler pages secret put DNSHE_SECRET_3
 
 # 面板访问密码
 wrangler pages secret put DNS_PANEL_PASSWORD
+
+# 会话签名密钥（可选，推荐设置；未设置时由访问密码派生）
+wrangler pages secret put SESSION_SECRET
 ```
 
 这一步决定了你是不是在裸奔，别跳过。
@@ -98,4 +101,6 @@ wrangler pages deploy
 
 - 所有敏感信息（API密钥、访问密码）都通过环境变量管理
 - 访问面板需要输入正确密码
-- API调用使用安全的认证机制
+- 认证在服务端强制执行：登录成功后签发 HMAC-SHA256 签名的会话 Token（HttpOnly + Secure + SameSite=Strict Cookie），`functions/_middleware.ts` 对全部 `/api/*`（`/api/auth` 除外）统一校验，未认证一律 401
+- 修改 `DNS_PANEL_PASSWORD`（或 `SESSION_SECRET`）会立即使所有已签发会话失效
+- 若怀疑历史版本曾被未授权访问，请轮换全部 `DNSHE_KEY_*` / `DNSHE_SECRET_*` 与面板密码
